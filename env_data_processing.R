@@ -1,7 +1,7 @@
 ################################################################################
 # Script to reproduce workflow for processing of environmental data:
 #
-# Summary:
+# Brief summary:
 # We estimated resource availability by combining environmental variables that 
 # commonly drive microbial biomass and composition.
 #
