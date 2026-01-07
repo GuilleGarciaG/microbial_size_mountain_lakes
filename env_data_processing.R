@@ -18,7 +18,7 @@
 # Cite as:
 # García-Gómez, G., Sánchez-Hernandez, J., Gutiérrez, J.A.M., & Arranz, I. (2026). 
 # Resource availability and functional composition underpin size-mediated responses of microbial plankton in mountain lakes.
-# Repository here (DOI):
+# Repository here (DOI)
 #
 # ------------------------------------------------------------------------------
 rm(list=ls())# clear the work environment
