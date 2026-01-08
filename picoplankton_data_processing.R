@@ -118,7 +118,7 @@ fs_vssc_all_comp <- compensate(fs_vssc_all, spillover(fs_vssc_all[[1]])$`$SPILLO
 # Get sample names
 all_fcs_names <- sampleNames(fs_vssc_all_comp)
 
-## 2.3. Collect sample volume from .fcs files ####
+## 2.2. Collect sample volume from .fcs files ####
 
 # Let's loop over all files to obtain sample volumes
 
@@ -222,18 +222,12 @@ head(results_list[[1]])
 # Combine all results into a single data frame (including ID column: "sample_FC_ID")
 fs_vssc_all.df <- bind_rows(results_list, .id = "sample_FC_ID")
 
-# check final dataset:
+# Check final dataset:
 head(fs_vssc_all.df) # OK columns
 
 unique(fs_vssc_all.df$habitat) # OK (n = 2 habitats)
 unique(fs_vssc_all.df$rep_ID) # OK (n = 3 replicates per habitat)
 unique(fs_vssc_all.df$lake) # OK (n = 10 lakes)
-
-# This summary takes a while...
-summary(fs_vssc_all.df)
-# min. volume = 0.000011 µm3
-# max. volume = 9.123141 µm3
-# median volume = 0.006557 µm3
 
 ## 2.4. Filter picoplankton size range (0.2-2µm) ####
 fs_vssc_all_pico.df <- 
@@ -273,12 +267,12 @@ pico_biovol_df <-
   data.frame()
 
 # [4] Save/load processed dataset comprising individual cells in as .RDS file ####
-# saveRDS(fs_vssc_all_pico.df, file = "~/Documents/MS_microbial_size_structure_Gredos/MS_1225/processed_data/size_data_picoplankton.rds")
-# saveRDS(pico_biovol_df, file = "~/Documents/MS_microbial_size_structure_Gredos/MS_1225/processed_data/biovol_data_picoplankton.rds") 
+# saveRDS(fs_vssc_all_pico.df, file = "../processed_data/size_data_picoplankton.rds") # this will take a while
+# saveRDS(pico_biovol_df, file = "../processed_data/biovol_data_picoplankton.rds") 
 
 # Load it from previously saved file (if needed):
-# fs_vssc_all_pico.df <- readRDS(file = "~/Documents/MS_microbial_size_structure_Gredos/MS_1225/processed_data/size_data_picoplankton.rds")
-# pico_biovol_df <- readRDS(file = "~/Documents/MS_microbial_size_structure_Gredos/MS_1225/processed_data/biovol_data_picoplankton.rds")
+# fs_vssc_all_pico.df <- readRDS(file = "../processed_data/size_data_picoplankton.rds")
+# pico_biovol_df <- readRDS(file = "../processed_data/biovol_data_picoplankton.rds")
 
 # [5] Check processed data comprising individual cells ####
 
@@ -449,7 +443,7 @@ summary(pca_pig.p)
 # PCA1+PCA2 = 0.8174 %
 
 # Visualise PCA
-(pca_pig_pico.p <- 
+(pca_pig_pico <- 
     fviz_pca_var(pca_pig.p,
                  col.var = "contrib", # Colour by contributions to the PC
                  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
@@ -580,7 +574,7 @@ check_ratios_p.df <-
   
   dplyr::filter(FL9.A > 0) 
 
-# PCA1 vs autofluorescence ratio between PE and chlorophyll (B-585 nm : R-710 nm):
+# PCA2 vs autofluorescence ratio between PE and chlorophyll (B-585 nm : R-710 nm):
 #
 # This fluorescence ratio provides a proxy for differences in photopigment composition, 
 # allowing discrimination between phycoerythrin-containing organisms and other phototrophs
