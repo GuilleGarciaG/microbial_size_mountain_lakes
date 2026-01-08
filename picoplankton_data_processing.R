@@ -166,7 +166,7 @@ head(samp_vol_all.df)
 
 ## 2.3 Estimate cell size for each event based on VSSC values ####
 #
-# We use a loop which runs in parallel for various samples:
+# We use a loop that runs in parallel for various samples:
 #
 # Let's loop the calculation over the entire flow set
 
@@ -443,7 +443,7 @@ pca_pig.p <- prcomp(cor_pico_df, scale = TRUE)
 
 # Check PCA
 summary(pca_pig.p)
-# PCA1: 0.6319 % -> proxy of hetero- vs. autotrophic feeding
+# PCA1: 0.6319 % -> proxy of hetero- vs. phototrophic feeding
 # PCA2: 0.1856 % -> proxy of phycoerythrin (PE)-containing phototrophs vs. other phototrophs
 # 
 # PCA1+PCA2 = 0.8174 %
@@ -483,7 +483,7 @@ pico_ind_df.c %>%
 # Here, we see that:
 # PCA1 positively correlates with chlorophyll a (peak at B-690 nm) content, which is mostly present in phototrophs,
 # thus supporting this composite variable (PCA1) as a proxy of phototrophic dominance.
-# In other words, the more positive values PCA1, more phototrophic dominance in a sample.
+# In other words, the more positive values PCA1, more dominance of phototrophs in a sample.
 
 # PCA1 vs chlorophyll autofluorescence (B-690 nm):
 ggplot(data = pico_ind_df.c, 
@@ -547,7 +547,7 @@ pico_ind_df.c %>%
   scale_fill_viridis_c(trans = "log10", option = "magma")
 
 # Remember PCA viz above:
-# PCA2 -> more positive values indicate higher content chlorophyll than PE, thus less occurrence of PE-containing organisms
+# PCA2 -> more positive values indicate higher content of chlorophyll than PE, thus less occurrence of PE-containing organisms
 
 # Here, we see that:
 # PCA2 negatively correlates with higher content in PE:chlorophyll ratio (e.g., characteristic of cyanobacteria or cryptophytes),
