@@ -1,5 +1,5 @@
 ################################################################################
-# Script to reproduce statistical analyses:
+# Script to reproduce statistical analyses
 #
 # Author: Guillermo García-Gómez (guillegar.gz@gmail.com)
 # Date: 08/01/2026
