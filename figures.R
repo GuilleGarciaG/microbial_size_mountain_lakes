@@ -7,9 +7,23 @@
 # ------------------------------------------------------------------------------
 # Cite as:
 # García-Gómez, G., Sánchez-Hernandez, J., Gutiérrez, J.A.M., & Arranz, I. (2026). 
-# Resource availability and functional composition underpin size-mediated responses of microbial plankton in mountain lakes
+# Resource availability and functional composition underpin size-mediated responses of microbial plankton in mountain lakes.
 # Repository here (DOI):
 #
+# ------------------------------------------------------------------------------
+rm(list=ls())# clear the work environment
+today <- format(Sys.Date(),"%Y%m%d")# setting the date
+# ------------------------------------------------------------------------------
+# It needs to be set to Project directory
+getwd()# to check
+
+# Load libraries ####
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(cowplot)
+library(vegan)
+
 ## Content:
 #
 ## [1] Theoretical background: 
@@ -23,19 +37,7 @@
 ## [3] Summary: 
 ## 3.1. Changes in N-M slopes with community biovolume along a resource availability gradient
 ## 3.2. Functional shifts associated to variation in N-M slopes among communities
-#
-# First, clear the work environment
-rm(list=ls())
 
-# Load libraries ####
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-library(cowplot)
-library(vegan)
-
-# ------------------------------------------------------------------------------
-# 
 # Use this path to figures folder:
 fig_path <- "../figures/"
 
