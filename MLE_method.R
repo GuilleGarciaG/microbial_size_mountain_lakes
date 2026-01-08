@@ -1,4 +1,4 @@
-# Load MLE function
+# Load MLE function:
 MLE.method <- function (x) {
   #MLE
   xmin = min(x)
