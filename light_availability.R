@@ -1,5 +1,5 @@
 ################################################################################
-# Script to estimate light intensity ###########################################
+# Script to estimate light availability ########################################
 #
 # Author: Guillermo García-Gómez (guillegar.gz@gmail.com)
 # Date: 09/01/2026
