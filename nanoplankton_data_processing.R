@@ -1,6 +1,6 @@
 ################################################################################
-# Script to reproduce the workflow for processing raw flow cytometry data:
-# Nanoplankton dataset
+# Script to reproduce the workflow for processing raw flow cytometry data: #####
+# Nanoplankton dataset #########################################################
 # 
 # Cytometer settings: standard forward side-scatter (FSC)
 # Precise for solving events between 2-20µm,
@@ -657,7 +657,7 @@ unique(MLE_data.n_all$lake)
 saveRDS(MLE_data.n_all, file = "../processed_data/MLE_results_nanoplankton.rds")
 
 #-------------------------------------------------------------------------------
-# Save data on the R session and packages versions for reproducibility shake ####
+# Save data of the R session and packages versions for reproducibility shake ####
 sink("../Rsession/nanoplankton_data_processing_session.txt")
 sessionInfo()
 sink()
