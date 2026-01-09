@@ -46,7 +46,7 @@ The dataset **environmental_data_lakes_2024.csv** contains measurements of envir
 * *nutrilab_label_TN.TP*: ID label from nutrient analyses 
 * *nutrilab_label_TOC*: ID label from TOC analyses 
 
-### Lakes' information
+### Lake information
 The dataset **lakes_location.csv** contains data on geographic location (latitude and longitude, in decimal degrees) and elevation (in m.a.s.l.) for each lake investigated here. The fine-resolution satellite data of terrain elevation, which was used to estimate light availability, is also available in the same folder ("appRasterSelectAPIService1764233714639-1101222210.tif").
 
 ### Size calibration
