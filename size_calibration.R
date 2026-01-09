@@ -1,5 +1,5 @@
 ################################################################################
-# Script to reproduce workflow for converting from light-scatter to cell size
+# Script to reproduce conversion from light-scatter to cell size ###############
 # 
 # Authors: Guillermo García-Gómez (guillegar.gz@gmail.com)
 # Date: 08/01/2026
