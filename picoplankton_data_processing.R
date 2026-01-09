@@ -1,6 +1,6 @@
 ################################################################################
-# Script to reproduce the workflow for processing raw flow cytometry data:
-# Picoplankton dataset
+# Script to reproduce the workflow for processing raw flow cytometry data: #####
+# Picoplankton dataset #########################################################
 # 
 # Cytometer settings: violet side-scatter (VSSC)
 # Enhanced accuracy to solve events between 0.2-2µm,
@@ -661,7 +661,7 @@ unique(MLE_data.p_all$lake)
 saveRDS(MLE_data.p_all, file = "../processed_data/MLE_results_picoplankton.rds")
 
 #-------------------------------------------------------------------------------
-# Save data on the R session and packages versions for reproducibility shake ####
+# Save data of the R session and packages versions for reproducibility shake ####
 sink("../Rsession/picoplankton_data_processing_session.txt")
 sessionInfo()
 sink()
