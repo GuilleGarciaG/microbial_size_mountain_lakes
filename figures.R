@@ -1,5 +1,5 @@
 ################################################################################
-# Script to reproduce figures
+# Script to reproduce figures ##################################################
 #
 # Authors: Guillermo García-Gómez (guillegar.gz@gmail.com)
 # Date: 08/01/2026
@@ -24,7 +24,7 @@ library(ggplot2)
 library(cowplot)
 library(vegan)
 
-## Content:
+# Content ####
 #
 ## [1] Theoretical background: 
 ## 1.1. Change in body size-scaling of abundance (N-M relationship) with resource availability in microbial plankton
@@ -1044,7 +1044,7 @@ print(Fig_3)
 dev.off()
 
 #-------------------------------------------------------------------------------
-# Save data on the R session and packages versions for reproducibility shake ####
+# Save data of the R session and packages versions for reproducibility shake ####
 sink("../Rsession/figures.txt")
 sessionInfo()
 sink()
