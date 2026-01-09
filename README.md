@@ -13,7 +13,7 @@ García-Gómez, G., Sánchez-Hernandez, J., Gutiérrez, J.A.M., & Arranz, I. (20
 
 * **data_analysis.R** | This script contains code to reproduce statistical models, model diagnostics, and model selection in this study.
 
-* **"figures.R"** | This script contains code to reproduce figures in the paper, including a brief conceptual description for the hypotheses shown in figure 1.
+* **figures.R** | This script contains code to reproduce figures in the paper, including a brief conceptual description for the hypotheses shown in figure 1.
 
 > ### Supplementary scripts
 > **MLE_method.R** | This script contains a custom function to estimate N-M slopes through maximum-likelihood method. It was created by Ignasi Arranz using original functions and materials from package sizeSpectra. See: Edwards, A. M. sizeSpectra (Github, 2019); https://github.com/andrew-edwards/sizeSpectra
