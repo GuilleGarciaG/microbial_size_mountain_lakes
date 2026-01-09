@@ -424,7 +424,10 @@ env_data.c_final <- env_data.c %>%
               dplyr::select(ID, massif, ID_lake, ID_sample, lake, replicate, habitat,
                             PCA1, PCA2), 
             
-            by = c("massif", "ID_lake", "ID_sample", "lake", "replicate", "habitat"))
+            by = c("massif", "ID_lake", "ID_sample", "lake", "replicate", "habitat")) %>%
+  
+  # convert replicate in character (safer):
+  mutate(replicate =  as.character(replicate))
 
 
 saveRDS(env_data.c_final, file = "../processed_data/env_data_pca.rds")
