@@ -47,15 +47,6 @@ env_data.c <- read.csv(file = "../raw_data/environmental_data_lakes_2024.csv")
 # file resulting from merging data from 
 # probe measurements (T, OS), nutrients (TN, TP) and TOC analyses
 
-# note to me: save the previous dataset with this change done
-env_data.c <- 
-  env_data.c %>% 
-  mutate(lake =  if_else(lake == "Payon", "Payón", lake),
-         region = if_else(region == "Sanabria", "Segundera", "Gredos"),
-         replicate =  as.character(replicate)) %>%
-  rename(massif = region) 
-
-
 # Check dataset
 unique(env_data.c$massif) # mountain massif
 unique(env_data.c$habitat) # habitats
