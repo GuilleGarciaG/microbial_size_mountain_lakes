@@ -1,5 +1,5 @@
 ################################################################################
-# Script to reproduce workflow for processing of environmental data:
+# Script to reproduce workflow for processing of environmental data ############
 #
 # Brief summary:
 # We estimated resource availability by combining environmental variables that 
@@ -439,7 +439,7 @@ env_data.c_final <- env_data.c %>%
 saveRDS(env_data.c_final, file = "../processed_data/env_data_pca.rds")
 
 #-------------------------------------------------------------------------------
-# Save data on the R session and packages versions for reproducibility shake ####
+# Save data of the R session and packages versions for reproducibility shake ####
 sink("../Rsession/env_data_processing_session.txt")
 sessionInfo()
 sink()
