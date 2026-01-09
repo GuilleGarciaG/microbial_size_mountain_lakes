@@ -1,4 +1,9 @@
-# Load MLE function:
+# Load MLE function ####
+#
+# This custom function to estimate N-M slopes through maximum-likelihood method 
+# was created by Ignasi Arranz using original functions and materials from package sizeSpectra.
+# See: Edwards, A. M. sizeSpectra (github, 2019); https://github.com/andrew-edwards/sizeSpectra
+#
 MLE.method <- function (x) {
   #MLE
   xmin = min(x)
