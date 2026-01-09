@@ -1,5 +1,5 @@
 ################################################################################
-# Script to reproduce statistical analyses
+# Script to reproduce statistical analyses #####################################
 #
 # Author: Guillermo García-Gómez (guillegar.gz@gmail.com)
 # Date: 08/01/2026
@@ -538,7 +538,7 @@ mean_N_to_biovol_um3.ug_pico / mean_N_to_biovol_um3.ug_nano
 # on average, 2.88-fold (ca. threefold) higher in picoplankton than in nanoplankton
 
 #-------------------------------------------------------------------------------
-# Save data on the R session and packages versions for reproducibility shake ####
+# Save data of the R session and packages versions for reproducibility shake ####
 sink("../Rsession/data_analysis.txt")
 sessionInfo()
 sink()
