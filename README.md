@@ -1,10 +1,10 @@
 # Resource availability and functional composition underpin size-mediated responses of microbial plankton in mountain lakes
 This repository contains codes and data needed to reproduce the analyses and figures of the manuscript:
 
-García-Gómez, G., Sánchez-Hernandez, J., Gutiérrez, J.A.M., & Arranz, I. (2026). Resource availability and functional composition underpin size-mediated responses of microbial plankton in mountain lakes.
+García-Gómez, G., Sánchez-Hernandez, J., Mas-Gutiérrez, J.A., & Arranz, I. (2026). Resource availability and functional composition underpin size-mediated responses of microbial plankton in mountain lakes.
 
 ## Cite the repository as:
-García-Gómez, G., Sánchez-Hernandez, J., Gutiérrez, J.A.M., & Arranz, I. (2026). Data, code, and statistical analyses of the manuscript: Resource availability and functional composition underpin size-mediated responses of microbial plankton in mountain lakes. OSF (DOI X): [link]
+García-Gómez, G., Sánchez-Hernandez, J., Mas-Gutiérrez, J.A., & Arranz, I. (2026). Data, code, and statistical analyses of the manuscript: Resource availability and functional composition underpin size-mediated responses of microbial plankton in mountain lakes. (DOI X): [link]
 
 ## R scripts
 * **picoplankton_data_processing.R** & **nanoplankton_data_processing.R** | These scripts contain all the necessary code to reproduce to process pico- and nanoplankton data, respectively. This workflow obtains raw data from flow cytometry analysis (.fcs files), estimates cell size, and calculates community metrics, including N-M slopes, biovolume, as well as functional dominance variables. The code performs a Principal Component Analysis based on cell autofluorescence, which is used to estimate functional dominance variables. Note that functions to convert light-scatter values from flow cytometry data are demonstrated in the supplementary script **size_calibration.R** (see below).
@@ -23,10 +23,11 @@ García-Gómez, G., Sánchez-Hernandez, J., Gutiérrez, J.A.M., & Arranz, I. (20
 > **light availability.R** | This script contains code to estimate light availability expressed as light irradiance using open-access satellite data.
 
 ## Data
-All raw data used in this study are included in folder *raw_data*. 
+All raw data used in this study are included in folder *raw_data*. Please visit Figshare repository to access the data supporting this study:
+[link]
 
 ### Microbial plankton
-There are two data folders containing all flow cytometry files (.fcs), respectively corresponding to the analysis of picoplankton (*VSSC_26032025_25-473*) and nanoplankton (*FSC_17102024*). These datasets contain .fcs files from the cytometry analysis of each lake sample. Note that these heavy folders (~1GB) were compressed as .zip files, so they need to be unzipped prior to run the scripts **picoplankton_data_processing.R** and **nanoplankton_data_processing.R**.
+There are two data folders containing all flow cytometry files (.fcs), respectively corresponding to the analysis of picoplankton (*VSSC_26032025_25-473*) and nanoplankton (*FSC_17102024*). These datasets contain .fcs files from the cytometry analysis of each lake sample. 
 
 ### Environmental variables
 The dataset **environmental_data_lakes_2024.csv** contains measurements of environmental variables for each sample. Columns in this dataset include:
@@ -53,7 +54,7 @@ The dataset **lakes_location.csv** contains data on geographic location (latitud
 The folder *calibration_beads* includes two subfolders containing three independent flow cytometry analyses of calibration beads of known diameter, respectively for size-ranges of 0.2-2µm and 1-15µm (with their corresponding folders). Cytometer settings were adjusted to improve measuring precision within each size-range by using violet side-scatter and standard side-scatter light, respectively.
 
 # Notes
-All data processing was carried out in the R software version 4.2.2. The *Rcode* folder contains the scripts to reproduce the statistical analyses and figures presented in this manuscript. Processed data, model outputs, and figures are already stored in their corresponding folders. These already processed and stored data will be used when rerunning statistical analyses and remaking figures. To run data processing scripts (from flow cytometry raw data to data frames), note that you first need to unzip folders containing .fcs files (*VSSC_26032025_25-473* & *FSC_17102024*) before running the scripts.
+All data processing was carried out in the R software version 4.2.2. The *Rcode* folder contains the scripts to reproduce the statistical analyses and figures presented in this manuscript. Processed data, model outputs, and figures are already stored in their corresponding folders. These already processed and stored data will be used when rerunning statistical analyses and remaking figures.
 
 # R packages
 The R packages used for each R script are enlisted in the corresponding R session files (within folder *Rsession*).
