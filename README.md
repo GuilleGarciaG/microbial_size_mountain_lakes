@@ -54,7 +54,7 @@ The dataset **lakes_location.csv** contains data on geographic location (latitud
 The folder *calibration_beads* includes two subfolders containing three independent flow cytometry analyses of calibration beads of known diameter, respectively for size-ranges of 0.2-2µm and 1-15µm (with their corresponding folders). Cytometer settings were adjusted to improve measuring precision within each size-range by using violet side-scatter and standard side-scatter light, respectively.
 
 # Notes
-All data processing was carried out in the R software version 4.2.2. The *Rcode* folder contains the scripts to reproduce the statistical analyses and figures presented in this manuscript. Processed data, model outputs, and figures are already stored in their corresponding folders. These already processed and stored data will be used when rerunning statistical analyses and remaking figures.
+All data processing was carried out in the R software version 4.2.2. The *Rcode* folder contains the scripts to reproduce the statistical analyses and figures presented in this manuscript. Please *move the **Rcode** folder inside the global folder (**SI_0126**) before running the code*. Processed data, model outputs, and figures are already stored in their corresponding folders. These already processed and stored data will be used when rerunning statistical analyses and remaking figures.
 
 # R packages
 The R packages used for each R script are enlisted in the corresponding R session files (within folder *Rsession*).
