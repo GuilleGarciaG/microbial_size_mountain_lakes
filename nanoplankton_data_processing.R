@@ -11,7 +11,7 @@
 # Operating System: MackBook-Pro 14; macOS, Darwin Kernel Version 24.4.0
 # ------------------------------------------------------------------------------
 # Cite as:
-# García-Gómez, G., Sánchez-Hernandez, J., Gutiérrez, J.A.M., & Arranz, I. (2026). 
+# García-Gómez, G., Sánchez-Hernandez, J., Mas-Gutiérrez, J.A., & Arranz, I. (2026). 
 # Resource availability and functional composition underpin size-mediated responses of microbial plankton in mountain lakes.
 # Repository here (DOI):
 #
