@@ -7,7 +7,7 @@ García-Gómez, G., Sánchez-Hernandez, J., Mas-Gutiérrez, J.A., & Arranz, I. (
 García-Gómez, G., Sánchez-Hernandez, J., Mas-Gutiérrez, J.A., & Arranz, I. (2026). Data, code, and statistical analyses of the manuscript: Resource availability and functional composition underpin size-mediated responses of microbial plankton in mountain lakes. (DOI X): [link]
 
 ## R scripts
-* **picoplankton_data_processing.R** & **nanoplankton_data_processing.R** | These scripts contain all the necessary code to reproduce to process pico- and nanoplankton data, respectively. This workflow obtains raw data from flow cytometry analysis (.fcs files), estimates cell size, and calculates community metrics, including N-M slopes, biovolume, as well as functional dominance variables. The code performs a Principal Component Analysis based on cell autofluorescence, which is used to estimate functional dominance variables. Note that functions to convert light-scatter values from flow cytometry data are demonstrated in the supplementary script **size_calibration.R** (see below).
+* **picoplankton_data_processing.R** & **nanoplankton_data_processing.R** | These scripts contain all the necessary code to process pico- and nanoplankton data, respectively. This workflow obtains raw data from flow cytometry analysis (.fcs files), estimates cell size, and calculates community metrics, including N-M slopes, biovolume, as well as functional dominance variables. The code performs a Principal Component Analysis based on cell autofluorescence, which is used to estimate functional dominance variables. Note that functions to convert light-scatter values from flow cytometry data are demonstrated in the supplementary script **size_calibration.R** (see below).
 
 * **env_data_processing.R** | This script contains code to process and check data of environmental variables, and to perform the Principal Component Analysis (PCA), which is used to quantify resource availability.
 
@@ -33,7 +33,7 @@ There are two data folders containing all flow cytometry files (.fcs), respectiv
 The dataset **environmental_data_lakes_2024.csv** contains measurements of environmental variables for each sample. Columns in this dataset include:
 
 * *ID*: unique ID number for data frame rows
-* *massif*: mountain range where sample was collected
+* *massif*: mountain range where each sample was collected
 * *ID_lake*: unique ID number for each lake
 * *ID_sample*: unique ID number for each sample
 * *lake*: lake name (in Spanish)
