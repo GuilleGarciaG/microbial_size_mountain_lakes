@@ -19,6 +19,26 @@ getwd()# to check
 #
 # Load libraries ####
 #
+# Install CRAN packages if needed
+#
+# required packages:
+cran_pkg <- c("dplyr",
+              "ggplot2", 
+              "terra",
+              "suncalc",
+              "nasapower",
+              "lubridate")
+
+# missing packages:
+miss_cran <- cran_pkg[!cran_pkg %in% rownames(installed.packages())]
+
+
+# install missing packages:
+for(pkg in miss_cran){
+  install.packages(pkg, dependencies = TRUE)
+}
+
+# load libraries:
 library(dplyr)
 library(ggplot2)
 
@@ -27,7 +47,7 @@ library(terra)
 library(suncalc) # sun position
 library(nasapower) # daily irradiance
 
-# handling dates and times
+# handling dates and times:
 library(lubridate)
 
 # Content ####

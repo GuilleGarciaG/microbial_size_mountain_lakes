@@ -19,6 +19,36 @@ getwd()# to check
 #
 # Load libraries ####
 #
+# Install missing Bioconductor packages if needed
+#
+# required packages:
+bio_pkg <- c("flowCore")
+
+# missing packages:
+miss_bioc <- bio_pkg[!bio_pkg %in% rownames(installed.packages())]
+
+# install missing packages:
+for(pkg in miss_bioc){
+  BiocManager::install(pkg)
+}
+
+# Install CRAN packages if needed
+#
+# required packages:
+cran_pkg <- c("dplyr",
+              "ggplot2", 
+              "scales")
+
+# missing packages:
+miss_cran <- cran_pkg[!cran_pkg %in% rownames(installed.packages())]
+
+
+# install missing packages:
+for(pkg in miss_cran){
+  install.packages(pkg, dependencies = TRUE)
+}
+
+# load libraries:
 library(dplyr)
 library(flowCore)
 library(ggplot2)

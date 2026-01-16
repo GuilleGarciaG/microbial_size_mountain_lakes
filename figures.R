@@ -18,9 +18,30 @@ today <- format(Sys.Date(),"%Y%m%d")# setting the date
 getwd()# to check
 
 # Load libraries ####
+#
+# Install CRAN packages if needed
+#
+# required packages:
+cran_pkg <- c("dplyr", "tidyr",
+              "ggplot2", 
+              "png", # dependency of 'ggplot2', but just in case
+              "cowplot",
+              "vegan")
+
+# missing packages:
+miss_cran <- cran_pkg[!cran_pkg %in% rownames(installed.packages())]
+
+
+# install missing packages:
+for(pkg in miss_cran){
+  install.packages(pkg, dependencies = TRUE)
+}
+
+# load libraries:
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(png)
 library(cowplot)
 library(vegan)
 
