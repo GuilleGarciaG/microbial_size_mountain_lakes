@@ -24,8 +24,49 @@ getwd()# to check
 #
 # Load libraries ####
 #
+# [IMPORTANT NOTE]
+# You need to install package 'BiocManager'
+# PRIOR to installing flow cytometry packages 'flowCore' and 'ggcyto'
+# (see below)
+#
+# Install package 'BiocManager' if needed:
+if (!require("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+# Install missing Bioconductor packages if needed
+#
+# required packages:
+bio_pkg <- c("flowCore", "ggcyto")
+
+# missing packages:
+miss_bioc <- bio_pkg[!bio_pkg %in% rownames(installed.packages())]
+
+# install missing packages:
+for(pkg in miss_bioc){
+  BiocManager::install(pkg)
+}
+
+# Install CRAN packages if needed
+#
+# required packages:
+cran_pkg <- c("dplyr", "ggplot2", 
+              "scales", "factoextra",
+              "future")
+
+# missing packages:
+miss_cran <- cran_pkg[!cran_pkg %in% rownames(installed.packages())]
+
+# install missing packages:
+for(pkg in miss_cran){
+  install.packages(pkg, dependencies = TRUE)
+}
+
+# load flow cytometry packages:
 library(flowCore)
 library(ggcyto)
+
+# load rest of packages:
 library(dplyr)
 library(ggplot2)
 library(scales)
