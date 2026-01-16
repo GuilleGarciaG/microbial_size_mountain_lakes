@@ -52,7 +52,7 @@ for(pkg in miss_bioc){
 # required packages:
 cran_pkg <- c("dplyr", "ggplot2", 
               "scales", "factoextra",
-              "future")
+              "future", "remotes")
 
 # missing packages:
 miss_cran <- cran_pkg[!cran_pkg %in% rownames(installed.packages())]
@@ -73,7 +73,13 @@ library(scales)
 library(factoextra)
 library(future)
 
-# call functions to estimate N-M slopes
+# call functions to estimate N-M slopes:
+#
+# if you do not have 'sizeSpectra' package installed
+if (!require("sizeSpectra", quietly = TRUE)) {
+  remotes::install_github("andrew-edwards/sizeSpectra")
+}
+
 library(sizeSpectra) # See: https://github.com/andrew-edwards/sizeSpectra
 source("../Rcode/MLE_method.R")
 
