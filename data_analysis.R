@@ -25,7 +25,7 @@ getwd()# to check
 cran_pkg <- c("dplyr", "ggplot2", 
               "lmerTest", "mgcv",
               "performance", 
-              "DHARMa",
+              "DHARMa",  # dependency of 'performance', just in case
               "ggeffects", "vegan")
 
 # missing packages:
@@ -66,6 +66,7 @@ library(ggplot2)
 library(lmerTest)
 library(mgcv)
 library(performance)
+library(DHARMa) # just in case
 library(ggeffects)
 library(vegan)
 
