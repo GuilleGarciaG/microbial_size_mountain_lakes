@@ -24,18 +24,35 @@ getwd()# to check
 # required packages:
 cran_pkg <- c("dplyr", "tidyr",
               "ggplot2", 
-              "png", # dependency of 'ggplot2', but just in case
+              "png", # dependency of 'ggplot2', just in case
               "cowplot",
               "vegan")
 
 # missing packages:
 miss_cran <- cran_pkg[!cran_pkg %in% rownames(installed.packages())]
 
-
 # install missing packages:
 for(pkg in miss_cran){
   install.packages(pkg, dependencies = TRUE)
 }
+
+# please check package versions:
+# (see example below, but checking all packages is recommended)
+#
+# library(remotes) # needed to install a specific package version
+packageVersion("ggplot2") # should be ‘3.5.2’; otherwise run the next line:
+# remotes::install_version("ggplot2", version = "3.5.2", dependencies = TRUE)
+
+packageVersion("vegan") # should be ‘2.6.8’; otherwise run the next line:
+# remotes::install_version("vegan", version = "2.6.8", dependencies = TRUE)
+
+# (key dependency of ggplot)
+packageVersion("patchwork") # should be ‘1.3.0’; otherwise run the next line:
+# remotes::install_version("patchwork", version = "1.3.0", dependencies = TRUE)
+
+# NOTE that your R session may have older versions of package dependencies
+# that are not updated automatically even if you install the right version
+# of required packaged
 
 # load libraries:
 library(dplyr)

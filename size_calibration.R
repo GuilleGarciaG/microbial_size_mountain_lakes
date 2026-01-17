@@ -48,6 +48,20 @@ for(pkg in miss_cran){
   install.packages(pkg, dependencies = TRUE)
 }
 
+# please check package versions:
+# (see example below, but checking all packages is recommended)
+#
+# library(remotes) # needed to install a specific package version
+packageVersion("flowCore") # should be ‘2.18.0’; otherwise run the next line:
+# remotes::install_version("flowCore", version = "2.18.0", dependencies = TRUE)
+
+packageVersion("ggplot2") # should be ‘3.5.2’; otherwise run the next line:
+# remotes::install_version("ggplot2", version = "3.5.2", dependencies = TRUE)
+
+# NOTE that your R session may have older versions of package dependencies
+# that are not updated automatically even if you install the right version
+# of required packaged
+
 # load libraries:
 library(dplyr)
 library(flowCore)

@@ -62,6 +62,26 @@ for(pkg in miss_cran){
   install.packages(pkg, dependencies = TRUE)
 }
 
+# please check package versions:
+# (see example below, but checking all packages is recommended)
+#
+packageVersion("flowCore") # should be ‘2.18.0’; otherwise run the next line:
+# remotes::install_version("flowCore", version = "2.18.0", dependencies = TRUE)
+#
+# library(remotes) # needed to install a specific package version
+packageVersion("ggcyto") # should be ‘1.34.0’; otherwise run the next line:
+# remotes::install_version("ggcyto", version = "1.34.0", dependencies = TRUE)
+
+packageVersion("ggplot2") # should be ‘3.5.2’; otherwise run the next line:
+# remotes::install_version("ggplot2", version = "3.5.2", dependencies = TRUE)
+
+packageVersion("factoextra") # should be ‘1.0.7.999’; otherwise run the next line:
+# remotes::install_version("factoextra", version = "1.0.7.999", dependencies = TRUE)
+
+# NOTE that your R session may have older versions of package dependencies
+# that are not updated automatically even if you install the right version
+# of required packaged
+
 # load flow cytometry packages:
 library(flowCore)
 library(ggcyto)

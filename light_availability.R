@@ -38,6 +38,26 @@ for(pkg in miss_cran){
   install.packages(pkg, dependencies = TRUE)
 }
 
+# please check package versions:
+# (see example below, but checking all packages is recommended)
+#
+# library(remotes) # needed to install a specific package version
+packageVersion("ggplot2") # should be ‘3.5.2’; otherwise run the next line:
+# remotes::install_version("ggplot2", version = "3.5.2", dependencies = TRUE)
+
+packageVersion("terra") # should be ‘1.8.42’; otherwise run the next line:
+# remotes::install_version("terra", version = "1.8.42", dependencies = TRUE)
+
+packageVersion("suncalc") # should be ‘0.5.1’; otherwise run the next line:
+# remotes::install_version("suncalc", version = "0.5.1", dependencies = TRUE)
+
+packageVersion("nasapower") # should be ‘4.2.5’; otherwise run the next line:
+# remotes::install_version("nasapower", version = "4.2.5", dependencies = TRUE)
+
+# NOTE that your R session may have older versions of package dependencies
+# that are not updated automatically even if you install the right version
+# of required packaged
+
 # load libraries:
 library(dplyr)
 library(ggplot2)
