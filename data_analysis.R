@@ -24,7 +24,9 @@ getwd()# to check
 # required packages:
 cran_pkg <- c("dplyr", "ggplot2", 
               "lmerTest", "mgcv",
-              "performance", "ggeffects", "vegan")
+              "performance", 
+              "DHARMa",
+              "ggeffects", "vegan")
 
 # missing packages:
 miss_cran <- cran_pkg[!cran_pkg %in% rownames(installed.packages())]
