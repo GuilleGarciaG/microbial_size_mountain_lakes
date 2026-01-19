@@ -4,7 +4,7 @@ This repository contains codes and data needed to reproduce the analyses and fig
 García-Gómez, G., Sánchez-Hernandez, J., Mas-Gutiérrez, J.A., & Arranz, I. (2026). Functional shifts rather than resource availability shape microbial size-structure in mountain lakes.
 
 ## Cite the repository as:
-García-Gómez, G., Sánchez-Hernandez, J., Mas-Gutiérrez, J.A., & Arranz, I. (2026). Data, code, and statistical analyses of the manuscript: Functional shifts rather than resource availability shape microbial size-structure in mountain lakes. (DOI X): [link]
+García-Gómez, G., Sánchez-Hernandez, J., Mas-Gutiérrez, J.A., & Arranz, I. (2026). Data, code, and statistical analyses of the manuscript: Functional shifts rather than resource availability shape microbial size-structure in mountain lakes. OSF (DOI 10.17605/OSF.IO/2493Q): https://doi.org/10.17605/OSF.IO/2493Q
 
 ## R scripts
 * **picoplankton_data_processing.R** & **nanoplankton_data_processing.R** | These scripts contain all the necessary code to process pico- and nanoplankton data, respectively. This workflow obtains raw data from flow cytometry analysis (.fcs files), estimates cell size, and calculates community metrics, including N-M slopes, biovolume, as well as functional dominance variables. The code performs a Principal Component Analysis based on cell autofluorescence, which is used to estimate functional dominance variables. Note that functions to convert light-scatter values from flow cytometry data are demonstrated in the supplementary script **size_calibration.R** (see below).
