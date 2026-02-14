@@ -236,7 +236,7 @@ sim.df$C <- with(sim.df, a * exp(mean(log(m_min, m_max))) * alpha)
     
     # show reference N-M relationship (alpha = 0.75)
     geom_abline(intercept = log10(b), slope = -1, lty = 2, lwd = 1) + 
-    annotate("text", x = 1.3, y = 0.9, label = expression(italic(lambda)), size = 9, family = "Times") +
+    annotate("text", x = 1.3, y = 0.9, label = expression(italic(λ)), size = 9, family = "Times") +
     
     
     # plot labels:
@@ -258,11 +258,11 @@ sim.df$C <- with(sim.df, a * exp(mean(log(m_min, m_max))) * alpha)
       axis.line = element_blank(),
       panel.border = element_rect(size = 1.5, colour = "black", fill = NA),
       
-      axis.title = element_text(size = 21),
+      axis.title = element_text(size = 25),
       text = element_text(size = 20, family = "Times"),
       legend.title.position = "top",
       legend.direction = "horizontal",
-      legend.text = element_text(size = 17)) +
+      legend.text = element_text(size = 18)) +
     guides(colour=guide_colourbar(barwidth = 14.3)))
 
 
@@ -348,8 +348,8 @@ M.500.p <- data.frame(R = 300,
     xlim(20, 300) + 
     ylim(min(data.fit$lambda)+0.1, 0.25) +
     
-    annotate("text", x = M.5.p$R, y = M.5.p$lambda+0.1, label = "small", hjust = 1, size = 6.5, family = "Times") +
-    annotate("text", x = M.500.p$R, y = M.500.p$lambda-0.1, label = "large",  hjust = 1, size = 6.5, family = "Times") +
+    annotate("text", x = M.5.p$R, y = M.5.p$lambda+0.1, label = "small", hjust = 1, size = 7.5, family = "Times") +
+    annotate("text", x = M.500.p$R, y = M.500.p$lambda-0.1, label = "large",  hjust = 1, size = 7.5, family = "Times") +
     
     geom_line(data = M.5, aes(x = R, y = lambda), lty = 1, size = 2, alpha = 0.9, col = "grey65") +
     geom_line(data = M.500, aes(x = R, y = lambda), lty = 1, size = 2, alpha = 0.9, col = "grey10") +
@@ -358,7 +358,7 @@ M.500.p <- data.frame(R = 300,
     geom_point(data = M.500.p, aes(x = R, y = lambda), size = 5, pch = 21, stroke = 1.5, fill = "white") +
     
     labs(x = "Resource availability (R)", 
-         y = expression("N-M slope"~italic((lambda)))) +
+         y = expression("N-M slope"~italic((λ)))) +
     theme_classic() +
     theme(
       legend.title.align = 0.5,
@@ -370,7 +370,7 @@ M.500.p <- data.frame(R = 300,
       axis.line = element_blank(),
       panel.border = element_rect(size = 1.5, colour = "black", fill = NA),
       
-      axis.title = element_text(size = 20),
+      axis.title = element_text(size = 25),
       text = element_text(size = 15, family = "Times")))
 
 
@@ -379,7 +379,7 @@ M.500.p <- data.frame(R = 300,
 (Fig_1a_label <- 
    
    ggdraw(Fig_1a) +
-   draw_label(label = expression("("*bolditalic(a)*")"), x = 0.9, y = 0.98, hjust = 0.2, vjust = 1.2, size = 28, fontfamily = "Times"))
+   draw_label(label = expression(bold("(a)")), x = 0.9, y = 0.98, hjust = 0.2, vjust = 1.2, size = 28, fontfamily = "Times"))
 
 
 # Let's add silhouettes showing different pico- and nanoplankton groups #
@@ -394,7 +394,7 @@ nano_image <- "../figures/nanoplankton_image.png"
     ggdraw(Fig_1b) +
     draw_image(pico_image,  x = 0.25, y = 0.37, scale = 0.15) +
     draw_image(nano_image,  x = 0.25, y = -0.15, scale = 0.30) +
-    draw_label(label = expression("("*bolditalic(b)*")"), x = 0.15, y = 0.98, 
+    draw_label(label =  expression(bold("(b)")), x = 0.15, y = 0.98, 
                hjust = 0.2, vjust = 1.2, size = 28, fontfamily = "Times"))
 
 # Figure 1: (a) and (b) panels together
@@ -474,9 +474,9 @@ res_palette <- setNames(res_col$colour, res_col$lake)
               aes(x = x, y = conf.high, col = group), lty = 2, lwd = 1, col = "grey10") +
     
     labs(title = "Picoplankton", 
-         subtitle = "small size (0.2-2 µm)", 
-         y = expression("N-M slope ("~lambda*"')"), 
-         x = "Resource level (PCA1, a.u.)",
+         subtitle = "Small size (0.2-2 μm)", 
+         y = expression("N–M slope ("~italic(λ)*"')"), 
+         x = expression("Resource level ("*PCA[1]*")"),
          shape = "Massif",
          fill = "Lake") +
     
@@ -485,17 +485,17 @@ res_palette <- setNames(res_col$colour, res_col$lake)
     theme(
       axis.line = element_blank(),
       panel.border = element_rect(size = 1.5, colour = "black", fill = NA),
-      plot.title = element_text(face = "bold", size = 25),
-      plot.subtitle = element_text(size = 18),
+      plot.title = element_text(face = "bold", size = 28),
+      plot.subtitle = element_text(size = 20),
       axis.ticks.length = unit(.25, "cm"),
-      axis.title = element_text(size = 20, family = "Times"),
-      axis.text = element_text(size = 17, family = "Times"),
-      text = element_text(size = 15, family = "Times"),
-      legend.text = element_text(size = 16, family = "Times"),
+      axis.title = element_text(size = 26, family = "Times"),
+      axis.text = element_text(size = 21, family = "Times"),
+      text = element_text(size = 17, family = "Times"),
+      legend.text = element_text(size = 19, family = "Times"),
       legend.spacing.x = unit(1, 'cm'),
-      legend.title = element_text(size = 18),
+      legend.title = element_text(size = 20),
       legend.key.size = unit(0.8, "cm"),
-      strip.text = element_text(size = 15)) +
+      strip.text = element_text(size = 15))  +
     
     
     scale_fill_manual(values = res_palette, 
@@ -530,9 +530,9 @@ res_palette <- setNames(res_col$colour, res_col$lake)
               aes(x = x, y = conf.high, col = group), lty = 2, lwd = 1, col = "grey10") +
     
     labs(title = "Nanoplankton", 
-         subtitle = "large size (2-20 µm)", 
-         y = expression("N–M slope ("~lambda*"')"), 
-         x = "Resource level (PCA1, a.u.)",
+         subtitle = "Large size (2-20 μm)", 
+         y = expression("N–M slope ("~italic(λ)*"')"), 
+         x = expression("Resource level ("*PCA[1]*")"),
          shape = "Massif",
          fill = "Lake") +
     
@@ -541,15 +541,15 @@ res_palette <- setNames(res_col$colour, res_col$lake)
     theme(
       axis.line = element_blank(),
       panel.border = element_rect(size = 1.5, colour = "black", fill = NA),
-      plot.title = element_text(face = "bold", size = 25),
-      plot.subtitle = element_text(size = 18),
+      plot.title = element_text(face = "bold", size = 28),
+      plot.subtitle = element_text(size = 20),
       axis.ticks.length = unit(.25, "cm"),
-      axis.title = element_text(size = 20, family = "Times"),
-      axis.text = element_text(size = 17, family = "Times"),
-      text = element_text(size = 15, family = "Times"),
-      legend.text = element_text(size = 16, family = "Times"),
+      axis.title = element_text(size = 26, family = "Times"),
+      axis.text = element_text(size = 21, family = "Times"),
+      text = element_text(size = 17, family = "Times"),
+      legend.text = element_text(size = 19, family = "Times"),
       legend.spacing.x = unit(1, 'cm'),
-      legend.title = element_text(size = 18),
+      legend.title = element_text(size = 20),
       legend.key.size = unit(0.8, "cm"),
       strip.text = element_text(size = 15)) +
     
@@ -607,7 +607,7 @@ par(family = "Times", font = 1)
 png(paste(fig_path, "rda_plot_pico.png", sep = ""),
     width = 7,
     height = 5,
-    units = "in", res = 600,
+    units = "in", res = 700,
     family = "Times")
 
 # Reduce margins around individual plots
@@ -621,7 +621,7 @@ plot(varpart.pico,
      c("RA", "PH", "PE"),
      xlim = c(0.3, 0.5),
      ylim = c(0.3, 0.5),
-     digits = 2, cex = 1.7, id.size = 2.1)
+     digits = 2, cex = 1.9, id.size = 2.5)
 
 dev.off()
 
@@ -629,7 +629,7 @@ dev.off()
 png(paste(fig_path, "rda_plot_nano.png", sep = ""),
     width = 7,
     height = 5,
-    units = "in", res = 600,
+    units = "in", res = 700,
     family = "Times")
 
 # Reduce margins around individual plots
@@ -643,7 +643,7 @@ plot(varpart.nano,
      c("RA", "PH", "PE"),
      xlim = c(0.3, 0.5),
      ylim = c(0.3, 0.5),
-     digits = 2, cex = 1.7, id.size = 2.1)
+     digits = 2, cex = 1.9, id.size = 2.5)
 
 dev.off()
 
@@ -688,10 +688,10 @@ Fig_2_leg <-
 # Please, be patient. This figure may take a while to show up:
 (Fig_2 <- ggdraw(Fig_2_leg) +
     
-    draw_label(label = expression("("*bolditalic(a)*")"), 
+    draw_label(label = expression(bold("(a)")), 
                x = 0.02, y = 0.99, hjust = 0.2, vjust = 1.2, size = 28, fontfamily = "Times") +
     
-    draw_label(label = expression("("*bolditalic(b)*")"), 
+    draw_label(label = expression(bold("(b)")), 
                x = 0.02, y = 0.4, hjust = 0.2, vjust = 1.2, size = 28, fontfamily = "Times"))
 
 # Save Figure 2:
@@ -699,7 +699,7 @@ dev.off()
 
 # png:
 png(file = paste(fig_path, "Fig_2.png", sep = ""), 
-    width = 17, height = 13, units = "in", res = 1200)
+    width = 17, height = 13, units = "in", res = 1300)
 
 # In case you like pdf more:
 # pdf(file = "~/Documents/MS_microbial_size_structure_Gredos/Figures/Fig_1.pdf",
@@ -754,11 +754,11 @@ MLE_all_results_df_avg <-
     geom_point(aes(y = MLE_slope.m, x = log10(biovol.um3.mL.m), fill = PCA1.m), 
                size = 7, stroke = 1.5, shape = 21) +
     
-    labs(y = expression("N–M slope ("~lambda*"')"), 
-         x = expression(log[10]~"Biovolume"~(µm^3*µl^-1)),
+    labs(y = expression("N–M slope ("~italic(λ)*"')"), 
+         x = expression(log[10]~"Biovolume"~(μm^3*μL^-1)),
          title = "Picoplankton",
          shape = "",
-         fill = "Resource level (PCA1)") +
+         fill = expression("Resource level ("*PCA[1]*")")) +
     
     xlim(1.2, 4)+
     
@@ -772,22 +772,22 @@ MLE_all_results_df_avg <-
     theme(
       axis.line = element_blank(),
       panel.border = element_rect(size = 1.5, colour = "black", fill = NA),
-      plot.title = element_text(face = "bold", size = 25),
+      plot.title = element_text(face = "bold", size = 27),
       plot.subtitle = element_text(size = 18),
       axis.ticks.length = unit(.25, "cm"),
-      axis.title = element_text(size = 20, family = "Times"),
+      axis.title = element_text(size = 25, family = "Times"),
       axis.text = element_text(size = 17, family = "Times"),
       text = element_text(size = 15, family = "Times"),
       legend.text = element_text(size = 16, family = "Times"),
       legend.spacing.x = unit(1, 'cm'),
-      legend.title = element_text(size = 17),
+      legend.title = element_text(size = 18),
       legend.key.size = unit(0.8, "cm"),
-      #legend.position = c(0.8, 0.1),
       legend.position = c(0.25, 0.85),
       legend.background = element_blank(),
       legend.title.position = "top",
       legend.direction = "horizontal") +
     guides(fill=guide_colourbar(barwidth = 11)))
+
 
 
 # Plot for nanoplankton (N-M slopes vs. biovolume/µl)
@@ -813,30 +813,34 @@ MLE_all_results_df_avg <-
     geom_point(aes(y = MLE_slope.m, x = log10(biovol.um3.mL.m), fill = PCA1.m), 
                size = 7, stroke = 1.5, shape = 21) +
     
-    xlim(1.3, 4)+
-    
-    labs(y = expression("N–M slope ("~lambda*"')"), 
-         x = expression(log[10]~"Biovolume"~(µm^3*µl^-1)),
+    labs(y = expression("N–M slope ("~italic(λ)*"')"), 
+         x = expression(log[10]~"Biovolume"~(μm^3*μL^-1)),
          title = "Nanoplankton",
          shape = "",
-         fill = "Resource level (PCA1)") +
+         fill = expression("Resource level ("*PCA[1]*")")) +
+    
+    xlim(1.2, 4)+
+    
+    scale_y_continuous(
+      breaks = scales::breaks_width(0.2),
+      labels = scales::label_number(accuracy = 0.1)
+    ) +
     
     theme_classic() +
     
     theme(
       axis.line = element_blank(),
       panel.border = element_rect(size = 1.5, colour = "black", fill = NA),
-      plot.title = element_text(face = "bold", size = 25),
+      plot.title = element_text(face = "bold", size = 27),
       plot.subtitle = element_text(size = 18),
       axis.ticks.length = unit(.25, "cm"),
-      axis.title = element_text(size = 20, family = "Times"),
+      axis.title = element_text(size = 25, family = "Times"),
       axis.text = element_text(size = 17, family = "Times"),
       text = element_text(size = 15, family = "Times"),
       legend.text = element_text(size = 16, family = "Times"),
       legend.spacing.x = unit(1, 'cm'),
-      legend.title = element_text(size = 17),
+      legend.title = element_text(size = 18),
       legend.key.size = unit(0.8, "cm"),
-      #legend.position = c(0.8, 0.1),
       legend.position = c(0.25, 0.85),
       legend.background = element_blank(),
       legend.title.position = "top",
@@ -921,10 +925,10 @@ theme_plots <-
   theme(
     axis.line = element_blank(),
     panel.border = element_rect(size = 1.5, colour = "black", fill = NA),
-    plot.title = element_text(face = "bold", size = 25),
+    plot.title = element_text(face = "bold", size = 27),
     plot.subtitle = element_text(size = 18),
     axis.ticks.length = unit(.25, "cm"),
-    axis.title = element_text(size = 20, family = "Times"),
+    axis.title = element_text(size = 25, family = "Times"),
     axis.text = element_text(size = 17, family = "Times"),
     text = element_text(size = 15, family = "Times"),
     legend.text = element_text(size = 16, family = "Times"),
@@ -1057,13 +1061,13 @@ theme_plots <-
 # Draw labels on figure panels:
 (Fig_3 <- ggdraw(Fig_3.pre) +
     
-    draw_label(label = expression("("*bolditalic(a)*")"), 
+    draw_label(label = expression(bold("(a)")), 
                x = 0.02, y = 0.99, hjust = 0.2, vjust = 1.2, size = 28, fontfamily = "Times") +
     
-    draw_label(label = expression("("*bolditalic(b)*")"), 
+    draw_label(label =  expression(bold("(b)")), 
                x = 0.51, y = 0.99, hjust = 0.2, vjust = 1.2, size = 28, fontfamily = "Times") +
     
-    draw_label(label = expression("("*bolditalic(c)*")"), 
+    draw_label(label = expression(bold("(c)")), 
                x = 0.76, y = 0.99, hjust = 0.2, vjust = 1.2, size = 28, fontfamily = "Times"))
 
 # Save Figure 3:
@@ -1071,7 +1075,7 @@ dev.off()
 
 # png:
 png(file = paste(fig_path, "Fig_3.png", sep = ""), 
-    width = 13, height = 12, units = "in", res = 1200)
+    width = 13, height = 12, units = "in", res = 1300)
 
 # In case you like pdf more:
 # pdf(file = "~/Documents/MS_microbial_size_structure_Gredos/Figures/Fig_1.pdf",
