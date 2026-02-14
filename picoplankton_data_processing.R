@@ -398,7 +398,7 @@ ggplot(fs_vssc_all_pico.df,
 # Create a list to store the results
 MLE_list <- list()
 
-# Correct loop syntax
+# Loop calculation of N-M slopes across all samples:
 for (sample in unique(fs_vssc_all_pico.df$sample_FC_ID)) { 
   
   # Check progress:

@@ -395,7 +395,7 @@ ggplot(fs_fsc_all_nano.df,
 # Create a list to store the results
 MLE_list <- list()
 
-# Correct loop syntax
+# Loop calculation of N-M slopes across all samples:
 for (sample in unique(fs_fsc_all_nano.df$sample_FC_ID)) { 
   
   # Check progress:
