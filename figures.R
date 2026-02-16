@@ -474,9 +474,9 @@ res_palette <- setNames(res_col$colour, res_col$lake)
               aes(x = x, y = conf.high, col = group), lty = 2, lwd = 1, col = "grey10") +
     
     labs(title = "Picoplankton", 
-         subtitle = "Small size (0.2-2 μm)", 
+         subtitle = "Small size (0.2–2 μm)", 
          y = expression("N–M slope ("~italic(λ)*"')"), 
-         x = expression("Resource level ("*PCA[1]*")"),
+         x = expression("Resource availability (R, "*PCA[1]*")"),
          shape = "Massif",
          fill = "Lake") +
     
@@ -530,9 +530,9 @@ res_palette <- setNames(res_col$colour, res_col$lake)
               aes(x = x, y = conf.high, col = group), lty = 2, lwd = 1, col = "grey10") +
     
     labs(title = "Nanoplankton", 
-         subtitle = "Large size (2-20 μm)", 
+         subtitle = "Large size (2–20 μm)", 
          y = expression("N–M slope ("~italic(λ)*"')"), 
-         x = expression("Resource level ("*PCA[1]*")"),
+         x = expression("Resource availability (R, "*PCA[1]*")"),
          shape = "Massif",
          fill = "Lake") +
     
@@ -618,7 +618,7 @@ par(mar = c(1, 1, 0, 1.5),  # margins: bottom, left, top, right margins
 plot(varpart.pico,
      bg = c("gold1", "aquamarine","slateblue"),
      cutoff = 0.001, alpha = 80,
-     c("RA", "PH", "PE"),
+     c("R", "PH", "PE"),
      xlim = c(0.3, 0.5),
      ylim = c(0.3, 0.5),
      digits = 2, cex = 1.9, id.size = 2.5)
@@ -640,7 +640,7 @@ par(mar = c(1, 1, 0, 1.5),  # bottom, left, top, right margins
 plot(varpart.nano,
      bg = c("gold1", "aquamarine","slateblue"),
      cutoff = 0.001, alpha = 80,
-     c("RA", "PH", "PE"),
+     c("R", "PH", "PE"),
      xlim = c(0.3, 0.5),
      ylim = c(0.3, 0.5),
      digits = 2, cex = 1.9, id.size = 2.5)
@@ -758,7 +758,7 @@ MLE_all_results_df_avg <-
          x = expression(log[10]~"Biovolume"~(μm^3*μL^-1)),
          title = "Picoplankton",
          shape = "",
-         fill = expression("Resource level ("*PCA[1]*")")) +
+         fill = "Resource availability") +
     
     xlim(1.2, 4)+
     
@@ -817,7 +817,7 @@ MLE_all_results_df_avg <-
          x = expression(log[10]~"Biovolume"~(μm^3*μL^-1)),
          title = "Nanoplankton",
          shape = "",
-         fill = expression("Resource level ("*PCA[1]*")")) +
+         fill = "Resource availability") +
     
     xlim(1.2, 4)+
     
