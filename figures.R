@@ -2,13 +2,13 @@
 # Script to reproduce figures ##################################################
 #
 # Authors: Guillermo García-Gómez (guillegar.gz@gmail.com)
-# Date: 16/01/2026
+# Date: 17/02/2026
 # Operating System: MackBook-Pro 14; macOS, Darwin Kernel Version 24.4.0
 # ------------------------------------------------------------------------------
 # Cite as:
-# García-Gómez, G., Sánchez-Hernandez, J., Mas-Gutiérrez, J.A., & Arranz, I. (2026). 
-# Functional shifts rather than resource availability shape microbial size-structure in mountain lakes.
-# Repository here (DOI):
+# García-Gómez, G., Sánchez-Hernandez, J., Mas Gutiérrez, J.A., & Arranz, I. (2026). 
+# Community size structure of microbial plankton is associated with functional composition along a resource gradient in mountain lakes.
+# OSF (DOI 10.17605/OSF.IO/2493Q)
 #
 # ------------------------------------------------------------------------------
 rm(list=ls())# clear the work environment
@@ -225,7 +225,7 @@ sim.df$C <- with(sim.df, a * exp(mean(log(m_min, m_max))) * alpha)
 (Fig_1a <- 
     ggplot(df.plot, aes(y = log10(N.plot), x = log10(M.plot))) +
     
-    # show different N-M relationships colored by resource availability
+    # show different N-M relationships coloured by resource availability
     geom_segment(aes(x = log10(min(M.plot)), y = log10(N_max), 
                      xend = log10(max(M.plot)), yend = log10(N_min), colour = R),
                  lwd = 0.6, alpha = 0.85,
@@ -878,7 +878,7 @@ quant_hist <- function(df, xvar = "MLE_slope", color_var = "mean_PCA2_pig",
       mean_color = mean(!!color_var, na.rm = TRUE)  # mean of the colour variable per bin
     )
   
-  # Assign quantiles of color variable (using mean value per bin)
+  # Assign quantiles of colour variable (using mean value per bin)
   df_binned <- df_binned %>%
     mutate(quantile_color = cut(
       mean_color, # mean value of functional variable
