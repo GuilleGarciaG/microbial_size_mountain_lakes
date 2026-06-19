@@ -2,7 +2,7 @@
 # Script to reproduce statistical analyses #####################################
 #
 # Author: Guillermo García-Gómez (guillegar.gz@gmail.com)
-# Date: 17/02/2026
+# Date: 18/06/2026
 # Operating System: MackBook-Pro 14; macOS, Darwin Kernel Version 24.4.0
 # ------------------------------------------------------------------------------
 # García-Gómez, G., Sánchez-Hernandez, J., Más Gutiérrez, J.A., & Arranz, I. (2026). 
@@ -39,21 +39,27 @@ for(pkg in miss_cran){
 # (see example below, but checking all packages is recommended)
 #
 # library(remotes) # needed to install a specific package version
-packageVersion("performance") # should be ‘0.15.0’; otherwise run the next line:
-# remotes::install_version("performance", version = "0.15.0", dependencies = TRUE)
+packageVersion("lmerTest") # should be ‘3.2.1’; otherwise run the next line:
+# remotes::install_version("lmerTest", version = "3.2.1", dependencies = TRUE)
 
-packageVersion("ggeffects") # should be ‘2.1.0’; otherwise run the next line:
-# remotes::install_version("ggeffects", version = "2.1.0", dependencies = TRUE)
+packageVersion("MuMIn") # should be ‘1.48.19’; otherwise run the next line:
+# remotes::install_version("MuMIn", version = "1.48.19", dependencies = TRUE)
+
+packageVersion("car") # should be ‘3.1.5’; otherwise run the next line:
+# remotes::install_version("car", version = "3.1.5", dependencies = TRUE)
+
+packageVersion("glmm.hp") # should be ‘1.0.0’; otherwise run the next line:
+# remotes::install_version("glmm.hp", version = "1.0.0", dependencies = TRUE)
+
+packageVersion("ggeffects") # should be ‘2.3.2’; otherwise run the next line:
+# remotes::install_version("ggeffects", version = "2.3.2", dependencies = TRUE)
 
 packageVersion("ggplot2") # should be ‘3.5.2’; otherwise run the next line:
 # remotes::install_version("ggplot2", version = "3.5.2", dependencies = TRUE)
 
-packageVersion("vegan") # should be ‘2.6.8’; otherwise run the next line:
-# remotes::install_version("vegan", version = "2.6.8", dependencies = TRUE)
-
 # (key dependency of ggplot)
-packageVersion("patchwork") # should be ‘1.3.0’; otherwise run the next line:
-# remotes::install_version("patchwork", version = "1.3.0", dependencies = TRUE)
+packageVersion("patchwork") # should be ‘1.3.2’; otherwise run the next line:
+# remotes::install_version("patchwork", version = "1.3.2", dependencies = TRUE)
 
 # NOTE that your R session may have older versions of package dependencies
 # that are not updated automatically even if you install the right version
@@ -61,13 +67,14 @@ packageVersion("patchwork") # should be ‘1.3.0’; otherwise run the next line
 
 # load libraries:
 library(dplyr)
-library(ggplot2)
 library(lmerTest)
-library(mgcv)
+library(MuMIn)
+library(car)
+library(glmm.hp)
+library(ggeffects)
 library(performance)
 library(DHARMa) # just in case
-library(ggeffects)
-library(vegan)
+library(ggplot2)
 
 # Content ####
 #
@@ -93,10 +100,9 @@ nano_path <- paste0(datasets_path, "MLE_results_nanoplankton.rds")
 MLE_results.nano <- readRDS(file = nano_path)
 
 # Environmental data (including PCA 1 and PCA 2):
-env_path <- paste0(datasets_path, "env_data_pca.rds")
+env_path <- paste0(datasets_path, "env_data.c.rds")
 
 env_data <- readRDS(file = env_path)
-
 
 ## 1.2. Merge datasets ####
 
@@ -110,9 +116,8 @@ MLE_all_results <- rbind(MLE_results.pico %>%
                                          dens_cell.uL,
                                          biovol.um3, 
                                          F_690.c,
-                                         F_570.c,
-                                         F_712.c,
-                                         mean_PCA1_pig, mean_PCA2_pig),
+                                         F_585.c,
+                                         F_712.c),
                          
                          MLE_results.nano %>%
                            mutate(group = "nanoplankton") %>%
@@ -123,9 +128,8 @@ MLE_all_results <- rbind(MLE_results.pico %>%
                                          dens_cell.uL,
                                          biovol.um3, 
                                          F_690.c,
-                                         F_570.c,
-                                         F_712.c,
-                                         mean_PCA1_pig, mean_PCA2_pig))
+                                         F_585.c,
+                                         F_712.c))
 
 
 # Merge with environmental data:
@@ -133,15 +137,36 @@ MLE_all_results_df <-
   
   MLE_all_results %>%
   
+  # merge with environmental data
   left_join(., env_data %>% 
+              
+              # match column character:
+              mutate(replicate = as.character(replicate)) %>%
               
               dplyr::select(massif, lake, habitat, replicate,
                             temperature.C, dissolved_oxygen.perc,
-                            total_N_ug.L, total_P_ug.L, TOC_mg.L,
-                            PCA1, PCA2), 
+                            total_N_ug.L, total_P_ug.L), 
             
-            by = c("lake", "habitat", "replicate")) %>%
-  mutate(PCA2 = -PCA2) # negative (-PCA2) so that increasing values are interpreted as greater TOC available (thus resource level)
+            by = c("lake", "habitat", "replicate")) %>% # full sample ID
+  
+  # transformation of variables
+  mutate(
+    
+    # Scale and center environmental predictors:
+    O2_scaled = scale(dissolved_oxygen.perc, 
+                      center = TRUE, scale = TRUE)[,1],
+    logP_scaled = scale(log(total_P_ug.L), 
+                        center = TRUE, scale = TRUE)[,1],
+    
+    logN_scaled = scale(log(total_N_ug.L), 
+                        center = TRUE, scale = TRUE)[,1],
+    
+    T_scaled = scale(temperature.C, 
+                     center = TRUE, scale = TRUE)[,1],
+    
+    # log10-transformed biovolume (log10 µm3 µl-1)
+    log_biovol.um3.uL = log10(biovol.um3/vol_uL))
+
 
 # Check number of samples (N = 120):
 nrow(MLE_all_results_df)
@@ -181,403 +206,825 @@ saveRDS(MLE_all_results_df, file = "../processed_data/MLE_all_results_df.rds")
 
 # [2] Statistical analysis ####
 #
-## 2.1. Hypothesis H1 ####
+## 2.1. Model selection ####
 
-### 2.1.1. Perform models ####
+### 2.1.1. N-M slopes ####
+
+# pre-step:
+options(na.action = "na.fail") # prevent fitting models to different datasets
+
+# 1, fit global model
+mm_test.sl <- lmer(MLE_slope ~
+                  group * (
+                    logN_scaled +
+                      logP_scaled +
+                      O2_scaled +
+                      T_scaled) +
+                  (1|lake),
+                data = MLE_all_results_df,
+                REML = FALSE, # fit using ML for comparison
+                na.action = na.fail)  # required by dredge
+
+summary(mm_test.sl)
+
+# 2. Dredge all candidate models
+lmm_dredge.sl <- dredge(mm_test.sl, REML = FALSE)
+
+# 3. Identify best model and top-ranked models (delta AICc < 2):
+
+best_model.sl <- get.models(lmm_dredge.sl, subset = 1)[[1]]
+
+# check best model:
+summary(best_model.sl)
+
+# Obtain top-ranked models (i.e., those with delta AICc < 2)
+avg_model_top.sl <- model.avg(lmm_dredge.sl, subset = delta < 2, fit = TRUE)
+
+# top-ranked models averaging results:
+avg_model_top.sl
+summary(avg_model_top.sl) # see model-averaged coefficients (full average of top-ranked models)
+confint(avg_model_top.sl) %>% round(., digits = 3) # 95% confidence intervals
+
+# relative importance of predictors:
+sw(avg_model_top.sl)
+sw(avg_model_top.sl) %>% data.frame() # extract relative importance (sum of AICc weights)
+
+# 4. Obtain marginal effects for interaction terms:
+
+# Create am object that package "car" can read
+# Rename coefficients names to avoid problematic characters for "car":
+coefs_renamed.sl <- coef(avg_model_top.sl)
+names(coefs_renamed.sl) <- make.names(names(coefs_renamed.sl))
+vcov_renamed.sl <- vcov(avg_model_top.sl)
+colnames(vcov_renamed.sl) <- make.names(rownames(vcov_renamed.sl))
+rownames(vcov_renamed.sl) <- colnames(vcov_renamed.sl)
+
+# Check new names
+names(coefs_renamed.sl)
+
+# check group-level marginal effects:
+
+# Extract only terms of interaction effect
+terms.sl_o <- c("O2_scaled", "grouppicoplankton.O2_scaled")
+terms.sl_p <- c("logP_scaled", "grouppicoplankton.logP_scaled")
+
+# group x oxygen saturation (effect for picoplankton)
+car::deltaMethod(coefs_renamed.sl[terms.sl_o], 
+                 "O2_scaled + grouppicoplankton.O2_scaled",
+                 vcov. = vcov_renamed.sl[terms.sl_o, terms.sl_o])
+
+# group x total phosphorus (effect for picoplankton)
+car::deltaMethod(coefs_renamed.sl[terms.sl_p], 
+                 "logP_scaled + grouppicoplankton.logP_scaled",
+                 vcov. = vcov_renamed.sl[terms.sl_p, terms.sl_p])
+
+# 5. Extract top-ranked models:
+top_models.sl <- get.models(lmm_dredge.sl, subset = delta < 2)
+
+length(top_models.sl) # 4 models with delta AICc < 2
+
+# individual top models:
+summary(best_m1.sl <- top_models.sl$`206`)
+summary(best_m2.sl <- top_models.sl$`222`)
+summary(best_m3.sl <- top_models.sl$`138`)
+summary(best_m4.sl <- top_models.sl$`154`)
+
+# refit using REML:
+best_m1.sl.c <- update(best_m1.sl, REML = T)
+best_m2.sl.c <- update(best_m2.sl, REML = T)
+best_m3.sl.c <- update(best_m3.sl, REML = T)
+best_m4.sl.c <- update(best_m4.sl, REML = T)
+
+# Check model assumptions:
+check_model(best_m1.sl.c)
+check_model(best_m2.sl.c)
+check_model(best_m3.sl.c)
+check_model(best_m4.sl.c)
+
+# Obtain conditional and marginal r-squared values:
+# marginal r2:
+summary(c(r.squaredGLMM(best_m1.sl.c)[[1]],
+          r.squaredGLMM(best_m2.sl.c)[[1]],
+          r.squaredGLMM(best_m3.sl.c)[[1]],
+          r.squaredGLMM(best_m4.sl.c)[[1]]))
+
+# conditional r2:
+summary(c(r.squaredGLMM(best_m1.sl.c)[[2]],
+          r.squaredGLMM(best_m2.sl.c)[[2]],
+          r.squaredGLMM(best_m3.sl.c)[[2]],
+          r.squaredGLMM(best_m4.sl.c)[[2]]))
+
+# 6. "Full" model averaging over entire set of candidate models
+avg_model_full.sl <- model.avg(lmm_dredge.sl, subset = TRUE)
+
+# full-averaged results:
+avg_model_full.sl
+summary(avg_model_full.sl) # full-averaged coefficients (see full-average)
+confint(avg_model_full.sl) %>% round(., digits = 4) # 95% confidence intervals
+
+# relative importance of predictors:
+sw(avg_model_full.sl)
+sw(avg_model_full.sl) %>% data.frame()
+
+### 2.1.2. Biovolume ####
+
+# pre-step:
+options(na.action = "na.fail") # prevent fitting models to different datasets
+
+# 1, fit global model
+mm_test.bi <- lmer(log_biovol.um3.uL ~
+                     group * (
+                       logN_scaled +
+                         logP_scaled +
+                         O2_scaled +
+                         T_scaled) +
+                     (1|lake),
+                   data = MLE_all_results_df,
+                   REML = FALSE, # fit using ML for comparison
+                   na.action = na.fail)  # required by dredge
+
+summary(mm_test.bi)
+
+# 2. Dredge all candidate models
+lmm_dredge.bi <- dredge(mm_test.bi, REML = FALSE)
+
+# 3. Identify best model and top-ranked models (delta AICc < 2):
+
+best_model.bi <- get.models(lmm_dredge.bi, subset = 1)[[1]]
+
+# check best model:
+summary(best_model.bi)
+
+# Obtain top-ranked models (i.e., those with delta AICc < 2)
+avg_model_top.bi <- model.avg(lmm_dredge.bi, subset = delta < 2, fit = TRUE)
+
+# top-ranked models averaging results:
+avg_model_top.bi
+summary(avg_model_top.bi) # see model-averaged coefficients (full average of top-ranked models)
+confint(avg_model_top.bi) %>% round(., digits = 3) # 95% confidence intervals
+
+# relative importance of predictors:
+sw(avg_model_top.bi)
+sw(avg_model_top.bi) %>% data.frame() # extract relative importance (sum of AICc weights)
+
+# 4. Obtain marginal effects for interaction terms:
+
+# Create am object that package "car" can read
+# Rename coefficients names to avoid problematic characters for "car":
+coefs_renamed.bi <- coef(avg_model_top.bi)
+names(coefs_renamed.bi) <- make.names(names(coefs_renamed.bi))
+vcov_renamed.bi <- vcov(avg_model_top.bi)
+colnames(vcov_renamed.bi) <- make.names(rownames(vcov_renamed.bi))
+rownames(vcov_renamed.bi) <- colnames(vcov_renamed.bi)
+
+# Check new names
+names(coefs_renamed.bi)
+
+# check group-level marginal effects:
+
+# Extract only terms of interaction effect
+terms.bi <- c("logP_scaled", "grouppicoplankton.logP_scaled")
+
+# group x total phosphorus (effect for picoplankton)
+car::deltaMethod(coefs_renamed.bi[terms.bi], 
+                 "logP_scaled + grouppicoplankton.logP_scaled",
+                 vcov. = vcov_renamed.bi[terms.bi, terms.bi])
+
+# 5. Extract top-ranked models:
+top_models.bi <- get.models(lmm_dredge.bi, subset = delta < 2)
+
+length(top_models.bi) # 11 models with delta AICc < 2
+
+# individual top models:
+summary(best_m1.bi <- top_models.bi$`350`)
+summary(best_m2.bi <- top_models.bi$`206`)
+summary(best_m3.bi <- top_models.bi$`352`)
+summary(best_m4.bi <- top_models.bi$`78`)
+summary(best_m5.bi <- top_models.bi$`48`)
+summary(best_m6.bi <- top_models.bi$`112`)
+summary(best_m7.bi <- top_models.bi$`478`)
+summary(best_m8.bi <- top_models.bi$`240`)
+summary(best_m9.bi <- top_models.bi$`208`)
+summary(best_m10.bi <- top_models.bi$`36`)
+summary(best_m11.bi <- top_models.bi$`44`)
+
+# refit using REML:
+best_m1.bi.c <- update(best_m1.bi, REML = T)
+best_m2.bi.c <- update(best_m2.bi, REML = T)
+best_m3.bi.c <- update(best_m3.bi, REML = T)
+best_m4.bi.c <- update(best_m4.bi, REML = T)
+best_m5.bi.c <- update(best_m5.bi, REML = T)
+best_m6.bi.c <- update(best_m6.bi, REML = T)
+best_m7.bi.c <- update(best_m7.bi, REML = T)
+best_m8.bi.c <- update(best_m8.bi, REML = T)
+best_m9.bi.c <- update(best_m9.bi, REML = T)
+best_m10.bi.c <- update(best_m10.bi, REML = T)
+best_m11.bi.c <- update(best_m11.bi, REML = T)
+
+# Check model assumptions:
+check_model(best_m1.bi.c)
+check_model(best_m2.bi.c)
+check_model(best_m3.bi.c)
+check_model(best_m4.bi.c)
+check_model(best_m5.bi.c)
+check_model(best_m6.bi.c)
+check_model(best_m7.bi.c)
+check_model(best_m8.bi.c)
+check_model(best_m9.bi.c)
+check_model(best_m10.bi.c)
+check_model(best_m11.bi.c)
+
+# Obtain conditional and marginal r-squared values:
+# marginal r2:
+summary(c(r.squaredGLMM(best_m1.bi.c)[[1]],
+          r.squaredGLMM(best_m2.bi.c)[[1]],
+          r.squaredGLMM(best_m3.bi.c)[[1]],
+          r.squaredGLMM(best_m4.bi.c)[[1]],
+          r.squaredGLMM(best_m5.bi.c)[[1]],
+          r.squaredGLMM(best_m6.bi.c)[[1]],
+          r.squaredGLMM(best_m7.bi.c)[[1]],
+          r.squaredGLMM(best_m8.bi.c)[[1]],
+          r.squaredGLMM(best_m9.bi.c)[[1]],
+          r.squaredGLMM(best_m10.bi.c)[[1]],
+          r.squaredGLMM(best_m11.bi.c)[[1]]))
+
+# conditional r2:
+summary(c(r.squaredGLMM(best_m1.bi.c)[[2]],
+          r.squaredGLMM(best_m2.bi.c)[[2]],
+          r.squaredGLMM(best_m3.bi.c)[[2]],
+          r.squaredGLMM(best_m4.bi.c)[[2]],
+          r.squaredGLMM(best_m5.bi.c)[[2]],
+          r.squaredGLMM(best_m6.bi.c)[[2]],
+          r.squaredGLMM(best_m7.bi.c)[[2]],
+          r.squaredGLMM(best_m8.bi.c)[[2]],
+          r.squaredGLMM(best_m9.bi.c)[[2]],
+          r.squaredGLMM(best_m10.bi.c)[[2]],
+          r.squaredGLMM(best_m11.bi.c)[[2]]))
+
+# 6. "Full" model averaging over entire set of candidate models
+avg_model_full.bi <- model.avg(lmm_dredge.bi, subset = TRUE)
+
+# full-averaged results:
+avg_model_full.bi
+summary(avg_model_full.bi) # full-averaged coefficients (see full-average)
+confint(avg_model_full.bi) %>% round(., digits = 4) # 95% confidence intervals
+
+# relative importance of predictors:
+sw(avg_model_full.bi)
+sw(avg_model_full.bi) %>% data.frame()
+
+### 2.1.3 Save results of best models for visualisation ####
+# (i.e., models with the lowest AICc value)
+
+# refit using REML:
+best_model.sl_REML <-  update(best_model.sl, REML = T)
+best_model.bi_REML <-  update(best_model.bi, REML = T)
+
+summary(best_model.sl_REML)
+summary(best_model.bi_REML)
+
+# save:
+saveRDS(best_model.sl_REML, file = "../results/best_model.sl_REML.rds")
+saveRDS(best_model.bi_REML, file = "../results/best_model.bi_REML.rds")
+
+## 2.2. Hierarchical variance partitioning ####
 #
-# We use two linear models to assess 
-# the influence of both across- (LM) and within-lake variation (LMM)
-
-# 1. Linear model, (LM; ordinary least squares):
+# We use here the "main" environmental variales (as those with the highest relevance from AICc model selection)
+# and 2 functional variables (based on fluorescence at certain wave lenghts in the cytometer, see main text)
 #
-# (variation across lakes)
-lm_mle_PCA <- lm(MLE_slope ~ PCA1 * group + PCA2 * group, 
-                 data = MLE_all_results_df)
+# B690 -> dominance of phototrophs over heterotrophs
+# B585:R712 -> dominance of PE-containing phototrophs over other phototrophs
 
-# 2. Linear mixed effects model (LMM):
-#
-# (accounts for variation within lakes)
-lmm_mle_PCA <- lmer(MLE_slope ~ PCA1 * group + PCA2 * group + (1|lake), 
-                    na.action = na.omit,
-                    data = MLE_all_results_df)
+# Perform separate models for each microbial group:
 
-# 3. Generalised additive model (GAM):
-#
-# (accounts for non-linear variation across lakes)
-gam_mle_PCA <- gam(MLE_slope ~ 
-                     group + 
-                     s(PCA1, by = factor(group)) +
-                     s(PCA2, by = factor(group)),
-                   data = MLE_all_results_df)
+# Picoplankton dataset:
+pico.df <- MLE_all_results_df %>% 
+  dplyr::filter(group == "picoplankton") %>%
+  
+  # scale and center functional variables:
+  mutate(B690 = scale(F_690.c, 
+                      center = TRUE, scale = TRUE)[,1],
+         B585.712 = scale(log(F_585.c/F_712.c), 
+                          center = TRUE, scale = TRUE)[,1])
+# Nanoplankton dataset:
+nano.df <- MLE_all_results_df %>% 
+  dplyr::filter(group == "nanoplankton") %>%
+  
+  # scale and center functional variables:
+  mutate(B690 = scale(F_690.c, 
+                      center = TRUE, scale = TRUE)[,1],
+         B585.712 = scale(log(F_585.c/F_712.c), 
+                          center = TRUE, scale = TRUE)[,1])
 
-# 4. Generalised additive mixed-effects model (GAMM):
-#
-# (accounts for non-linear variation across and within lakes)
-gamm_mle_PCA <- gamm(MLE_slope ~ 
-                       group + 
-                       s(PCA1, by = factor(group)) +
-                       s(PCA2, by = factor(group)),
-                     random = list(lake = ~1),
-                     data = MLE_all_results_df)
+# Now we perform models including "main" environmental predictors of N-M slopes and biovolume
+# and functional variables
 
-# Summary of results:
-summary(lm_mle_PCA)
-summary(lmm_mle_PCA)
-summary(gam_mle_PCA)
-summary(gamm_mle_PCA$gam)
+### 2.2.1. N-M slopes ####
 
-# Check models' performance:
-check_model(lm_mle_PCA)
-check_model(lmm_mle_PCA)
-check_model(gam_mle_PCA, residual_type = "normal")
-check_model(gamm_mle_PCA$gam, residual_type = "normal")
+# 1. Perform models:
 
-### 2.1.2. Model comparison ####
-
-# Let's extract gam results from this object 
-# to ease visualisation of results in 
-# performance tables:
-gamm_mle_PCA.c <- gamm_mle_PCA$gam
-
-model.comparison_rank <- compare_performance(lm_mle_PCA, 
-                                             lmm_mle_PCA, 
-                                             gam_mle_PCA, 
-                                             gamm_mle_PCA.c, 
-                                             rank = T, 
-                                             estimator = "ML")
-
-model.comparison <- compare_performance(lm_mle_PCA, 
-                                        lmm_mle_PCA, 
-                                        gam_mle_PCA, 
-                                        gamm_mle_PCA.c, 
-                                        estimator = "ML")
-# check model comparison results:
-model.comparison_rank # model ranking
-model.comparison
-
-# The best model to explain the variation in N-M slopes is the LMM 
-# according to a combined comparison of their residual standard deviations, 
-# root mean squared errors, and Akaike and Bayesian Information Criteria values (AIC, BIC)
-
-# create a dataset to store results:
-model.comparison_rank_df <- data.frame(model.comparison_rank)
-
-model.comparison_df <- 
-  data.frame(model.comparison) %>%
-  arrange(factor(Name, levels = model.comparison_rank_df$Name))
-
-# Check dataset with model comparison results:
-model.comparison_rank_df
-model.comparison_df
-
-# Save results of model selection in tables
-# 
-# 1. Model ranking based on AIC, BIC, RMSE, and Sigma, including performance score:
-write.csv(model.comparison_rank_df, file = "../results/model.comparison_rank.csv")
-#
-# 2. Similar summary table but AIC and BIC values are included (not only weights):
-write.csv(model.comparison_df, file = "../results/model.comparison_rank_complete.csv")
-
-# Let's check now the best model in more depth
-
-# Compare observed and predicted values of best model (LMM)
-obs <- lmm_mle_PCA@frame$MLE_slope  # extract observed values
-pred <- predict(lmm_mle_PCA)        # extract fitted (marginal, fixed + random)
-
-# Create a data frame
-ovp <- data.frame(
-  observed = obs,
-  predicted = pred
+# Model for picoplankton
+lmm_mod.part.pico.sl <- lmer(
+  MLE_slope ~ 
+    
+    # "main" environmental variables
+    O2_scaled +
+    logP_scaled +
+    
+    # functional variables
+    B690 +
+    B585.712 +
+    
+    (1|lake),
+  data = pico.df
 )
 
-# Plot observed VS. predicted values from best model:
-plot(ovp$predicted, ovp$observed,
-     xlab = "Predicted", ylab = "Observed",
-     main = "Observed vs Predicted", 
-     ylim = c(min(c(ovp$predicted, ovp$observed)), max(c(ovp$predicted, ovp$observed))),
-     xlim = c(min(c(ovp$predicted, ovp$observed)), max(c(ovp$predicted, ovp$observed))))
-abline(0, 1, col = "tomato", lwd = 2)  # add 1:1 line
-# Note low values under the 1:1 line at very low observed MLE slopes.
-
-# However, both predictions and residuals in this model seem fine enough:
-check_predictions(lmm_mle_PCA) # posterior predictive check (note slight inaccuracy at low values)
-check_residuals(lmm_mle_PCA) # simulated residuals uniformly distributed (p = 0.253)
-
-# Check conditional and marginal R-squared from LMM:
-r2_nakagawa(lmm_mle_PCA)
-# Conditional R2: 0.444 | variance explained of the whole model (fixed+random factors)
-# Marginal R2: 0.127 | variance explained by fixed factors
-#
-# Note the high amount of variance explained by lake identity,
-# which highlights the relevance of within-lake environmental conditions
-# to explain N-M slopes
-
-### 2.1.3. Save best model ####
-saveRDS(lmm_mle_PCA, file = "../results/LMM_results.rds")
-
-# Load model results if you need it:
-# lmm_mle_PCA <- readRDS(file = "../results/LMM_results.rds")
-
-summary(lmm_mle_PCA)
-# Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
-# Formula: MLE_slope ~ PCA1 * group + PCA2 * group + (1 | lake)
-#  Data: MLE_all_results_df
-#
-# REML criterion at convergence: -119.9
-#
-# Scaled residuals: 
-#     Min      1Q  Median      3Q     Max 
-# -3.3200 -0.3793  0.0686  0.5410  2.8196 
-#
-# Random effects:
-#  Groups   Name        Variance Std.Dev.
-#  lake     (Intercept) 0.007842 0.08856 
-#  Residual             0.013789 0.11743 
-# Number of obs: 118, groups:  lake, 10
-#
-# Fixed effects:
-#                          Estimate Std. Error        df t value Pr(>|t|)    
-# (Intercept)             -1.72343    0.03191   8.74207 -54.004 2.42e-12 ***
-# PCA1                     0.04022    0.01799  51.80456   2.235   0.0297 *  
-# grouppicoplankton        0.05376    0.02162 101.90059   2.487   0.0145 *  
-# PCA2                    -0.03309    0.01855  88.96632  -1.784   0.0778 .  
-# PCA1:grouppicoplankton  -0.03479    0.01651 101.90059  -2.107   0.0376 *  
-# grouppicoplankton:PCA2   0.01167    0.01909 101.90059   0.611   0.5424    
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-#
-# Correlation of Fixed Effects:
-#             (Intr) PCA1   grppcp PCA2   PCA1:g
-# PCA1         0.011                            
-# grppcplnktn -0.339  0.000                     
-# PCA2         0.005 -0.026  0.000              
-# PCA1:grppcp  0.000 -0.459  0.000  0.000       
-# grppcp:PCA2  0.000  0.000  0.000 -0.515  0.000
-
-# Calculate 95% confidence intervals of model coefficients:
-# 
-# using Likelihood-ratio test method (see ?lme4::confint.merMod; imported from package 'lme4')
-confint_lmm_mle_PCA <- confint(lmm_mle_PCA, method = "profile")
-
-# 95% CI table
-confint_LMM_df <- 
-  data.frame(confint_lmm_mle_PCA) %>%
-  tibble::rownames_to_column(var = "Parameter") %>%
-  mutate(Parameter = case_when(
+# Model for nanoplankton
+lmm_mod.part.nano.sl <- lmer(
+  MLE_slope ~ 
     
-    Parameter == ".sig01" ~ "Lake_ID.sd",
-    Parameter == ".sigma" ~ "Residual.sd",
-    TRUE ~ Parameter)) %>% 
-  
-  rename(low_95.CI = X2.5..,
-         hig_95.CI = X97.5..)
+    # "main" environmental variables
+    O2_scaled +
+    logP_scaled +
+    
+    # functional variables
+    B690 +
+    B585.712 +
+    
+    (1|lake),
+  data = nano.df
+)
 
-# Check  95% CI:
-confint_LMM_df
+# See results:
+summary(lmm_mod.part.pico.sl)
+summary(lmm_mod.part.nano.sl)
 
-# Create summary table for LMM:
-summary_LMM_df <- 
-  
-  as.data.frame(coef(summary(lmm_mle_PCA))) %>%
-  tibble::rownames_to_column(var = "Parameter") %>%
-  
-  mutate(across(c(Estimate, `Std. Error`, `Pr(>|t|)`),
-                ~round(.x, digits = 3))) %>%
-  
-  mutate(across(c(df, `t value`),
-                ~round(.x, digits = 2))) %>%
-  
-  rename(Coefficient = Estimate, 
-         t_value = `t value`,
-         p_value = `Pr(>|t|)`) %>%
-  
-  left_join(., confint_LMM_df, by = "Parameter") %>%
-  
-  mutate(across(c(low_95.CI, hig_95.CI),
-                ~round(.x, digits = 3))) %>%
-  
-  dplyr::select(Parameter, Coefficient, low_95.CI, hig_95.CI, df, t_value, p_value) %>%
-  
-  arrange(factor(Parameter, levels = c("(Intercept)", 
-                                       "grouppicoplankton", 
-                                       "PCA1", 
-                                       "PCA2", 
-                                       "PCA1:grouppicoplankton",
-                                       "grouppicoplankton:PCA2")))
+# Obtain 95% CIs:
+confint(lmm_mod.part.pico.sl) %>% round(., digits = 3)
+confint(lmm_mod.part.nano.sl) %>% round(., digits = 3)
 
-# Add rows for Std. Dev. of model and random factor (lake ID)
+# Check model assumptions:
+check_model(lmm_mod.part.pico.sl)
+check_model(lmm_mod.part.nano.sl)
 
-# Std. Dev. of entire model:
-sum_LMM <- summary(lmm_mle_PCA)
-sum_LMM$sigma
+# 2. Run hierarchical partitioning 
 
-# Std. Dev. of lake ID:
-sd_lake <- 
-  as.data.frame(VarCorr(lmm_mle_PCA)) %>%
-  dplyr::filter(grp == "lake", var1 == "(Intercept)")
+# Note on glmm.hp() function:
+# type = "commonality" shows unique + shared fractions
+# type = "HP" shows averaged hierarchical partitioning
+# default = "HP"
 
-sd_lake$sdcor
+# 2.1. Averaged hierarchical partitioning (individual contributions to variance)
+hp_lmm.p.sl <- glmm.hp(lmm_mod.part.pico.sl)
+hp_lmm.n.sl <- glmm.hp(lmm_mod.part.nano.sl)
 
-# Finally include standard deviation values (and 95% CIs) global residual and lake ID
-# in the summary table
-summary_LMM_df.all <- 
-  
-  summary_LMM_df %>%
-  rbind(., data.frame(Parameter = c("Lake_ID.sd", "Residual.sd"),
-                      Coefficient = c(sd_lake$sdcor, summary(lmm_mle_PCA)$sigma),
-                      df = NA_integer_,
-                      t_value = NA_integer_,
-                      p_value = NA_integer_) %>%
-          left_join(., confint_LMM_df,
-                    by = "Parameter")) %>%
-  mutate(across(c(Coefficient, low_95.CI, hig_95.CI),
-                ~round(.x, digits = 3)))
+# Check results:
+hp_lmm.p.sl
+hp_lmm.n.sl
 
-# sample size:
-nobs(lmm_mle_PCA) 
-# N = 118 (59 picoplankton, 59 nanoplankton / missing 1 TOC sample, thus missing 1 sample in both datasets)
+# double check (sum of ind. marginal variance = total marginal variance)
+sum(hp_lmm.p.sl$hierarchical.partitioning[, "Individual"])
+sum(hp_lmm.n.sl$hierarchical.partitioning[, "Individual"])
 
-# Check summary table:
-summary_LMM_df.all
+r.squaredGLMM(lmm_mod.part.pico.sl)
+r.squaredGLMM(lmm_mod.part.nano.sl)
+# OK!
 
-# Save best model (LMM) results in a summary table
-write.csv(summary_LMM_df.all, file = "../results/LMM_summary_table.csv")
+# 2.1. Variance partitioning in unique + shared fractions
+hp_lmm.p_T.sl <- glmm.hp(lmm_mod.part.pico.sl, commonality = T)
+hp_lmm.n_T.sl <- glmm.hp(lmm_mod.part.nano.sl, commonality = T)
 
-### 2.1.4. Check differences in coefficient values between pico- and nanoplankton ####
+# Visualise unique + share fractions between terms
+plot(hp_lmm.p_T.sl)
+plot(hp_lmm.n_T.sl)
+
+# Aggregate terms into environmental, functional, and shared fractions of variance:
+unique_env.var <- c("Unique to O2_scaled",
+                    "Unique to logP_scaled",
+                    "Common to O2_scaled, and logP_scaled")
+
+unique_func.var <- c("Unique to B690",
+                     "Unique to B585.712",
+                     "Common to B690, and B585.712")
+
+shared_env_func.var <- c("Common to O2_scaled, and B690",
+                         "Common to logP_scaled, and B690",
+                         "Common to O2_scaled, and B585.712",
+                         "Common to logP_scaled, and B585.712",
+                         "Common to O2_scaled, logP_scaled, and B690",
+                         "Common to O2_scaled, logP_scaled, and B585.712",
+                         "Common to logP_scaled, B690, and B585.712",
+                         "Common to O2_scaled, B690, and B585.712",
+                         "Common to O2_scaled, logP_scaled, B690, and B585.712")
+
+shared_env_B690 <- c("Common to O2_scaled, and B690", 
+                     "Common to logP_scaled, and B690",
+                     "Common to O2_scaled, logP_scaled, and B690",
+                     "Common to O2_scaled, B690, and B585.712",
+                     "Common to O2_scaled, logP_scaled, B690, and B585.712",
+                     "Common to logP_scaled, B690, and B585.712")
+
+shared_env_B585.712 <- c("Common to O2_scaled, and B585.712",
+                         "Common to logP_scaled, and B585.712",
+                         "Common to O2_scaled, logP_scaled, and B585.712",
+                         "Common to O2_scaled, B690, and B585.712",
+                         "Common to O2_scaled, logP_scaled, B690, and B585.712",
+                         "Common to logP_scaled, B690, and B585.712")
+
+# 2.2. Create tables with all fractions by term:
+shared_var.pico.sl <- 
+  data.frame(
+    component = names(hp_lmm.p_T.sl$commonality.analysis[, "Fractions"]),
+    fractions = hp_lmm.p_T.sl$commonality.analysis[, "Fractions"],
+    row.names = NULL) %>%
+  mutate(component = trimws(as.character(component)))%>%
+  mutate(fractions.perc = fractions * 100)
+
+shared_var.nano.sl <- 
+  data.frame(
+    component = names(hp_lmm.n_T.sl$commonality.analysis[, "Fractions"]),
+    fractions = hp_lmm.n_T.sl$commonality.analysis[, "Fractions"],
+    row.names = NULL) %>%
+  mutate(component = trimws(as.character(component))) %>%
+  mutate(fractions.perc = fractions * 100)
+
+# 2.3. Calculate total variance (sum of fractions)
+# by total, environmental variables, functional variables, or shared between these two types:
+
+# for picoplankton:
+(shared_df.pico.sl <- shared_var.pico.sl %>%
+    
+    mutate(type = case_when(
+      component %in% unique_env.var ~ "env-only",
+      component %in% unique_func.var ~ "func-only",
+      component %in% shared_env_func.var ~ "env+func",
+      TRUE ~ component)) %>%
+    
+    group_by(type) %>%
+    summarise(cum.fractions = sum(fractions)))
+
+# proportion of env. variance shared with functional:
+shared_df.pico.sl$cum.fractions[shared_df.pico.sl$type == "env+func"] / #  shared fraction env+func
+  (sum(shared_df.pico.sl$cum.fractions[shared_df.pico.sl$type == "env-only"],
+        shared_df.pico.sl$cum.fractions[shared_df.pico.sl$type == "env+func"])) # (total fraction of env. variables)
+# 37%
+
+# env. variance shared with functional variable B585:R712 (dominance of PE-containing organisms)
+shared_var.pico.sl %>%
+  filter(component %in% shared_env_B585.712) %>%
+  summarise(shared = sum(fractions))
+
+# proportion of env. variance overlapping B585:R712
+0.0205 / (0.0205 + 0.0183) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
+# 53%
+
+# for nanoplankton:
+(shared_df.nano.sl <- 
+    shared_var.nano.sl %>%
+    
+    mutate(type = case_when(
+      component %in% unique_env.var ~ "env-only",
+      component %in% unique_func.var ~ "func-only",
+      component %in% shared_env_func.var ~ "env+func",
+      TRUE ~ component)) %>%
+    
+    group_by(type) %>%
+    summarise(cum.fractions = sum(fractions)))
+
+# proportion of env. variance shared with functional:
+shared_df.nano.sl$cum.fractions[shared_df.nano.sl$type == "env+func"] / #  shared fraction env+func
+  (sum(shared_df.nano.sl$cum.fractions[shared_df.nano.sl$type == "env-only"],
+       shared_df.nano.sl$cum.fractions[shared_df.nano.sl$type == "env+func"])) # (total fraction of env. variables)
+# 95%
+
+# env. variance shared with functional variable B585:R712 (dominance of PE-containing organisms)
+shared_var.nano.sl %>%
+  filter(component %in% shared_env_B585.712) %>%
+  summarise(shared = sum(fractions))
+
+# proportion of env. variance overlapping B585:R712
+0.248 / (0.248 + 0.0135) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
+# 95%
+
+### 2.2.2. Biovolume ####
+
+# 1. Perform models:
+
+# Model for picoplankton
+lmm_mod.part.pico.bi <- lmer(
+  log_biovol.um3.uL ~ 
+    
+    # "main" environmental variables
+    O2_scaled +
+    logP_scaled +
+    
+    # functional variables
+    B690 +
+    B585.712 +
+    
+    (1|lake),
+  data = pico.df
+)
+
+# Model for nanoplankton
+lmm_mod.part.nano.bi <- lmer(
+  log_biovol.um3.uL ~ 
+    
+    # "main" environmental variables
+    O2_scaled +
+    logP_scaled +
+    
+    # functional variables
+    B690 +
+    B585.712 +
+    
+    (1|lake),
+  data = nano.df
+)
+
+# See results:
+summary(lmm_mod.part.pico.bi)
+summary(lmm_mod.part.nano.bi)
+
+# Obtain 95% CIs:
+confint(lmm_mod.part.pico.bi) %>% round(., digits = 3)
+confint(lmm_mod.part.nano.bi) %>% round(., digits = 3)
+
+# Check model assumptions:
+check_model(lmm_mod.part.pico.bi)
+check_model(lmm_mod.part.nano.bi)
+
+# 2. Run hierarchical partitioning 
+
+# Note on glmm.hp() function:
+# type = "commonality" shows unique + shared fractions
+# type = "HP" shows averaged hierarchical partitioning
+# default = "HP"
+
+# 2.1. Averaged hierarchical partitioning (individual contributions to variance)
+hp_lmm.p.bi <- glmm.hp(lmm_mod.part.pico.bi)
+hp_lmm.n.bi <- glmm.hp(lmm_mod.part.nano.bi)
+
+# Check results:
+hp_lmm.p.bi
+hp_lmm.n.bi
+
+# double check (sum of ind. marginal variance = total marginal variance)
+sum(hp_lmm.p.bi$hierarchical.partitioning[, "Individual"])
+sum(hp_lmm.n.bi$hierarchical.partitioning[, "Individual"])
+
+r.squaredGLMM(lmm_mod.part.pico.bi)
+r.squaredGLMM(lmm_mod.part.nano.bi)
+# OK!
+
+# 2.1. Variance partitioning in unique + shared fractions
+hp_lmm.p_T.bi <- glmm.hp(lmm_mod.part.pico.bi, commonality = T)
+hp_lmm.n_T.bi <- glmm.hp(lmm_mod.part.nano.bi, commonality = T)
+
+# Visualise unique + share fractions between terms
+plot(hp_lmm.p_T.bi)
+plot(hp_lmm.n_T.bi)
+
+# Use previously aggregated terms into environmental, functional, and shared fractions of variance (see previous section)
+
+# 2.2. Create tables with all fractions by term:
+shared_var.pico.bi <- 
+  data.frame(
+    component = names(hp_lmm.p_T.bi$commonality.analysis[, "Fractions"]),
+    fractions = hp_lmm.p_T.bi$commonality.analysis[, "Fractions"],
+    row.names = NULL) %>%
+  mutate(component = trimws(as.character(component)))%>%
+  mutate(fractions.perc = fractions * 100)
+
+shared_var.nano.bi <- 
+  data.frame(
+    component = names(hp_lmm.n_T.bi$commonality.analysis[, "Fractions"]),
+    fractions = hp_lmm.n_T.bi$commonality.analysis[, "Fractions"],
+    row.names = NULL) %>%
+  mutate(component = trimws(as.character(component))) %>%
+  mutate(fractions.perc = fractions * 100)
+
+# 2.3. Calculate total variance (sum of fractions)
+# by total, environmental variables, functional variables, or shared between these two types:
+
+# for picoplankton:
+(shared_df.pico.bi <- shared_var.pico.bi %>%
+    
+    mutate(type = case_when(
+      component %in% unique_env.var ~ "env-only",
+      component %in% unique_func.var ~ "func-only",
+      component %in% shared_env_func.var ~ "env+func",
+      TRUE ~ component)) %>%
+    
+    group_by(type) %>%
+    summarise(cum.fractions = sum(fractions)))
+
+# proportion of env. variance shared with functional:
+shared_df.pico.bi$cum.fractions[shared_df.pico.bi$type == "env+func"] / #  shared fraction env+func
+  (sum(shared_df.pico.bi$cum.fractions[shared_df.pico.bi$type == "env-only"],
+       shared_df.pico.bi$cum.fractions[shared_df.pico.bi$type == "env+func"])) # (total fraction of env. variables)
+# 31%
+
+# env. variance shared with functional variable B585:R712 (dominance of PE-containing organisms)
+shared_var.pico.bi %>%
+  filter(component %in% shared_env_B585.712) %>%
+  summarise(shared = sum(fractions))
+
+# proportion of env. variance overlapping B585:R712
+0.0045 / (0.0045 + 0.0772) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
+# ca. 6%
+
+# for nanoplankton:
+(shared_df.nano.bi <- 
+    shared_var.nano.bi %>%
+    
+    mutate(type = case_when(
+      component %in% unique_env.var ~ "env-only",
+      component %in% unique_func.var ~ "func-only",
+      component %in% shared_env_func.var ~ "env+func",
+      TRUE ~ component)) %>%
+    
+    group_by(type) %>%
+    summarise(cum.fractions = sum(fractions)))
+
+# proportion of env. variance shared with functional:
+shared_df.nano.bi$cum.fractions[shared_df.nano.bi$type == "env+func"] / #  shared fraction env+func
+  (sum(shared_df.nano.bi$cum.fractions[shared_df.nano.bi$type == "env-only"],
+       shared_df.nano.bi$cum.fractions[shared_df.nano.bi$type == "env+func"])) # (total fraction of env. variables)
+# 63%
+
+# env. variance shared with functional variable B585:R712 (dominance of PE-containing organisms)
+shared_var.nano.bi %>%
+  filter(component %in% shared_env_B585.712) %>%
+  summarise(shared = sum(fractions))
+
+# proportion of env. variance overlapping B585:R712
+0.0577 / (0.0577 + 0.0726) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
+# 95%
+
+### 2.2.3 Save results of variance partitioning for visualisation ####
+
+# Results: N-M slopes 
 #
-# Visualise predicted responses:
-predict_response(lmm_mle_PCA, terms = c("PCA1","group")) %>% plot()
+# picoplankton:
+hp_lmm.p_sl.df <- 
+  data.frame(
+    variable = names(hp_lmm.p.sl$hierarchical.partitioning[, "Individual"]),
+    individual_effect = hp_lmm.p.sl$hierarchical.partitioning[, "Individual"],
+    row.names = NULL) %>%
+  mutate(var.type = if_else(variable %in% c("B585.712", "B690"), "functional", "environmental"))
 
-# Save object with predicted responses, adjusted for PCA2 held at 0, and global intercept (i.e., random-intercept deviation set to 0).
+# nanoplankton:
+hp_lmm.n_sl.df <- 
+  data.frame(
+    variable = names(hp_lmm.n.sl$hierarchical.partitioning[, "Individual"]),
+    individual_effect = hp_lmm.n.sl$hierarchical.partitioning[, "Individual"],
+    row.names = NULL) %>%
+  mutate(var.type = if_else(variable %in% c("B585.712", "B690"), "functional", "environmental"))
+
+# overview of variance fractions:
+shared_df.pico.sl
+shared_df.nano.sl
+
+# save:
+saveRDS(hp_lmm.p_sl.df, file = "../results/hp_lmm.p_sl.df.rds")
+saveRDS(hp_lmm.n_sl.df, file = "../results/hp_lmm.n_sl.df.rds")
+
+saveRDS(shared_df.pico.sl, file = "../results/shared_df.pico.sl.rds")
+saveRDS(shared_df.nano.sl, file = "../results/shared_df.nano.sl.rds")
+
+# Results: Biovolume
 #
-# (i.e., the predicted interaction effect between plankton group and PCA1)
-int_PCA1_group <- predict_response(lmm_mle_PCA, terms = c("PCA1","group"))
-int_PCA1_group # check
+# picoplankton:
+hp_lmm.p_bi.df <- 
+  data.frame(
+    variable = names(hp_lmm.p.bi$hierarchical.partitioning[, "Individual"]),
+    individual_effect = hp_lmm.p.bi$hierarchical.partitioning[, "Individual"],
+    row.names = NULL) %>%
+  mutate(var.type = if_else(variable %in% c("B585.712", "B690"), "functional", "environmental"))
 
-# save it as an object, so we can use it when creating the figures:
-saveRDS(int_PCA1_group, "../results/int_PCA1_group_results.rds")
+# nanoplankton:
+hp_lmm.n_bi.df <- 
+  data.frame(
+    variable = names(hp_lmm.n.bi$hierarchical.partitioning[, "Individual"]),
+    individual_effect = hp_lmm.n.bi$hierarchical.partitioning[, "Individual"],
+    row.names = NULL) %>%
+  mutate(var.type = if_else(variable %in% c("B585.712", "B690"), "functional", "environmental"))
 
-# read it if necessary from here:
-# int_PCA1_group <- readRDS(file = "../results/int_PCA1_group_results.rds")
+# overview of variance fractions:
+shared_df.pico.bi
+shared_df.nano.bi
 
-## 2.2. Hypothesis H2 ####
-#
-### 2.2.1.  Canonical redundancy analysis ####
-#
-# (based on variance partition in package 'vegan')
-#
-# Picoplankton test:
+# save:
+saveRDS(hp_lmm.p_bi.df, file = "../results/hp_lmm.p_bi.df.rds")
+saveRDS(hp_lmm.n_bi.df, file = "../results/hp_lmm.n_bi.df.rds")
 
-MLE_pico_varpart.df <- 
-  MLE_all_results_df %>% 
-  dplyr::filter(group == "picoplankton") %>% 
-  dplyr::filter(!is.na(TOC_mg.L))
+saveRDS(shared_df.pico.bi, file = "../results/shared_df.pico.bi.rds")
+saveRDS(shared_df.nano.bi, file = "../results/shared_df.nano.bi.rds")
 
-varpart.pico <- 
-  varpart( 
-    MLE_pico_varpart.df$MLE_slope,
-    MLE_pico_varpart.df$PCA1,
-    MLE_pico_varpart.df$mean_PCA1_pig,
-    MLE_pico_varpart.df$mean_PCA2_pig,
-    scale = T)
+## 2.3. Check influence of light availability across lakes ####
 
-# Nanoplankton test:
+lake_light_int.df <- readRDS(file = "../processed_data/lake_light_int.df.rds")
 
-MLE_nano_varpart.df <- 
-  MLE_all_results_df %>% 
-  dplyr::filter(group == "nanoplankton") %>% 
-  dplyr::filter(!is.na(TOC_mg.L))
-
-varpart.nano <- 
-  varpart( 
-    MLE_nano_varpart.df$MLE_slope,
-    MLE_nano_varpart.df$PCA1,
-    MLE_nano_varpart.df$mean_PCA1_pig,
-    MLE_nano_varpart.df$mean_PCA2_pig,
-    scale = T)
-
-### 2.2.2. RDA results ####
-#
-# Picoplankton results:
-varpart.pico
-summary(varpart.pico)
-
-# contribution of X2+X3 independent of X1:
-0.21830 -(-0.01993) - 0.01308 - 0.03291 # remove contribution of X1
-
-plot(varpart.pico, cutoff = 0.001, digits = 2) # Visualise variane partition:
-
-# Nanoplankton results:
-varpart.nano
-summary(varpart.nano)
-
-# contribution of X2+X3 independent of X1:
-0.66217 -(-0.01476) - 0.20685 - 0.03795 # remove contribution of X1
-
-plot(varpart.nano, cutoff = 0.001, digits = 2) # Visualise variane partition:
-
-# Explicit relationship between N-M slope and dominance of PE-containing phototrophs:
-cor.test(
-  MLE_nano_varpart.df$MLE_slope,
-  MLE_nano_varpart.df$mean_PCA2_pig)
-# Pearson: t = -6.9479, df = 57, p-value = 3.885e-09
-
-# N-M slopes became lower with increasing dominance of PE-containing phototrophs.
-# The concomitant change of community biomass towards smaller organisms 
-# and greater occurence of PE-containing organisms across communities suggests that
-# this pattern is underpinned by the dominance of cyanobacteria 
-# (typical small, PE-containing organisms in microbial plankton) vs. larger microalgae.
-#
-# See detailed interpretation of this finding in Results & Discussion.
-
-### 2.2.3. Save RDA results ####
-saveRDS(varpart.pico, file = "../results/rda_results_pico.rds")
-saveRDS(varpart.nano, file = "../results/rda_results_nano.rds")
-
-# load RDA results if you need it:
-# varpart.pico <- readRDS(file = "../results/rda_results_pico.rds")
-# varpart.nano <- readRDS(file = "../results/rda_results_nano.rds")
-
-# Last check supply-to-demand ratio: ####
-# 
-# This piece of code supports an example given in the Results & Discussion,
-# which is aimed to estimate by how much resource supply is higher than resource
-# demand in pico- vs. nanoplankton due to their dissimilar cell sizes.
-
-# Calculated variables for this example:
-
-# Mean availability of total nitrogen (TN) per unit biovolume:
-
-# Picoplankton:
-mean_N_to_biovol_um3.ug_pico <- 
+MLE_all_results_df_L <- 
+  MLE_all_results_df %>%
+  left_join(., lake_light_int.df %>%
+            dplyr::filter(maxdist == 3000) %>%
+            mutate(lake = if_else(lake == "Payon", "Payón", lake)) %>%
+            dplyr::select(lake, light_hrs, light_irr.tc_PAR_umol.m2.s)) %>%
   
-  MLE_all_results_df %>% 
-  dplyr::filter(group == "picoplankton") %>%
-  mutate(
-    total_N_ug.ml = total_N_ug.L/1000,
-    biovol_um3.ml = (biovol.um3/vol_uL) * 1000,
-    N_to_biovol_um3.ug = total_N_ug.ml/biovol_um3.ml) %>%
-  
-  summarise(mean_N_to_biovol_um3.ug_nano = mean(N_to_biovol_um3.ug)) %>%
-  pull(mean_N_to_biovol_um3.ug_nano)
+  mutate(light_scaled = scale(light_irr.tc_PAR_umol.m2.s, 
+                              center = TRUE, scale = TRUE)[,1])
 
-# Nanoplankton:
-mean_N_to_biovol_um3.ug_nano <- 
-  
-  MLE_all_results_df %>% 
-  dplyr::filter(group == "nanoplankton") %>%
-  mutate(
-    total_N_ug.ml = total_N_ug.L/1000,
-    biovol_um3.ml = (biovol.um3/vol_uL) * 1000,
-    N_to_biovol_um3.ug = total_N_ug.ml/biovol_um3.ml) %>%
-  
-  summarise(mean_N_to_biovol_um3.ug_nano = mean(N_to_biovol_um3.ug)) %>%
-  pull(mean_N_to_biovol_um3.ug_nano)
 
-# calculate ratio of pico- over nanoplankton: 
-mean_N_to_biovol_um3.ug_pico / mean_N_to_biovol_um3.ug_nano
-# Across lakes, total nitrogen supply per unit of biovolume is,
-# on average, 2.88-fold (ca. threefold) higher in picoplankton than in nanoplankton
+### 2.3.1. N-M slopes ####
+
+# pre-step:
+options(na.action = "na.fail") # prevent fitting models to different datasets
+
+# 1, fit global model
+mm_test_L.sl <- lmer(MLE_slope ~
+                       group * (
+                         logN_scaled +
+                           logP_scaled +
+                           O2_scaled +
+                           T_scaled) +
+                       
+                       light_scaled +
+                       (1|lake),
+                     data = MLE_all_results_df_L,
+                     REML = FALSE, # fit using ML for comparison
+                     na.action = na.fail)  # required by dredge
+
+summary(mm_test_L.sl)
+
+# 2. Dredge all candidate models
+lmm_dredge_L.sl <- dredge(mm_test_L.sl, REML = FALSE)
+
+# 3. Identify best model and top-ranked models (delta AICc < 2):
+
+best_model_L.sl <- get.models(lmm_dredge_L.sl, subset = 1)[[1]]
+
+# check best model:
+summary(best_model_L.sl)
+
+# Obtain top-ranked models (i.e., those with delta AICc < 2)
+avg_model_top_L.sl <- model.avg(lmm_dredge_L.sl, subset = delta < 2, fit = TRUE)
+
+# top-ranked models averaging results:
+avg_model_top_L.sl
+summary(avg_model_top_L.sl) # see model-averaged coefficients (full average of top-ranked models)
+confint(avg_model_top_L.sl) %>% round(., digits = 3) # 95% confidence intervals
+
+# relative importance of predictors:
+sw(avg_model_top_L.sl)
+sw(avg_model_top_L.sl) %>% data.frame() # extract relative importance (sum of AICc weights)
+
+### 2.3.2. Biovolume ####
+
+# pre-step:
+options(na.action = "na.fail") # prevent fitting models to different datasets
+
+# 1, fit global model
+mm_test_L.bi <- lmer(log_biovol.um3.uL ~
+                       group * (
+                         logN_scaled +
+                           logP_scaled +
+                           O2_scaled +
+                           T_scaled) +
+                       
+                       light_scaled +
+                       (1|lake),
+                     data = MLE_all_results_df_L,
+                     REML = FALSE, # fit using ML for comparison
+                     na.action = na.fail)  # required by dredge
+
+summary(mm_test_L.bi)
+
+# 2. Dredge all candidate models
+lmm_dredge_L.bi <- dredge(mm_test_L.bi, REML = FALSE)
+
+# 3. Identify best model and top-ranked models (delta AICc < 2):
+
+best_model_L.bi <- get.models(lmm_dredge_L.bi, subset = 1)[[1]]
+
+# check best model:
+summary(best_model_L.bi)
+
+# Obtain top-ranked models (i.e., those with delta AICc < 2)
+avg_model_top_L.bi <- model.avg(lmm_dredge_L.bi, subset = delta < 2, fit = TRUE)
+
+# top-ranked models averaging results:
+avg_model_top_L.bi
+summary(avg_model_top_L.bi) # see model-averaged coefficients (full average of top-ranked models)
+confint(avg_model_top_L.bi) %>% round(., digits = 3) # 95% confidence intervals
+
+# relative importance of predictors:
+sw(avg_model_top_L.bi)
+sw(avg_model_top_L.bi) %>% data.frame() # extract relative importance (sum of AICc weights)
+
+# check relative relevance (sum of AICc weights) of ligth availability
+sw(model.avg(lmm_dredge_L.bi, subset = TRUE))
 
 #-------------------------------------------------------------------------------
 # Save data of the R session and packages versions for reproducibility shake ####

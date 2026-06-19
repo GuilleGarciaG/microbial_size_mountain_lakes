@@ -7,7 +7,7 @@
 # ideal to analyse nanoplankton communities
 #
 # Author: Guillermo García-Gómez (guillegar.gz@gmail.com)
-# Date: 17/02/2026
+# Date: 18/06/2026
 # Operating System: MackBook-Pro 14; macOS, Darwin Kernel Version 24.4.0
 # ------------------------------------------------------------------------------
 # Cite as:
@@ -65,18 +65,16 @@ for(pkg in miss_cran){
 # please check package versions:
 # (see example below, but checking all packages is recommended)
 #
-packageVersion("flowCore") # should be ‘2.18.0’; otherwise run the next line:
-# remotes::install_version("flowCore", version = "2.18.0", dependencies = TRUE)
+packageVersion("flowCore") # should be ‘2.22.1’; otherwise run the next line:
+# remotes::install_version("flowCore", version = "2.22.1", dependencies = TRUE)
 #
 # library(remotes) # needed to install a specific package version
-packageVersion("ggcyto") # should be ‘1.34.0’; otherwise run the next line:
-# remotes::install_version("ggcyto", version = "1.34.0", dependencies = TRUE)
+packageVersion("ggcyto") # should be ‘4.0.2’; otherwise run the next line:
+# remotes::install_version("ggcyto", version = "4.0.2", dependencies = TRUE)
 
-packageVersion("ggplot2") # should be ‘3.5.2’; otherwise run the next line:
+packageVersion("ggplot2") # should be ‘4.0.2’; otherwise run the next line:
 # remotes::install_version("ggplot2", version = "3.5.2", dependencies = TRUE)
 
-packageVersion("factoextra") # should be ‘1.0.7.999’; otherwise run the next line:
-# remotes::install_version("factoextra", version = "1.0.7.999", dependencies = TRUE)
 
 # NOTE that your R session may have older versions of package dependencies
 # that are not updated automatically even if you install the right version
@@ -432,7 +430,7 @@ for (sample in unique(fs_fsc_all_nano.df$sample_FC_ID)) {
     mutate(dens_cell.uL = cell_count/vol_uL,
            
            F_690.c = mean(log10(sample_data$FL9.A.c + 1)),
-           F_570.c = mean(log10(sample_data$FL7.A.c + 1)),
+           F_585.c = mean(log10(sample_data$FL7.A.c + 1)),
            F_712.c = mean(log10(sample_data$FL12.A.c + 1)))
   
   # Store the resulting data frame in the list
@@ -452,166 +450,15 @@ summary(MLE_data.n$MLE_slope)
 # (-2.098) - (-1.455)
 # mean: -1.723
 
-# [6] Distinguishing hetero- vs. phototrophs and PE-containing phototrophs vs. other phototrophs
+# [6] Distinguishing hetero- vs. phototrophs and PE-containing phototrophs vs. other phototrophs ####
 
-## 6.1. PCA of fluorescence emission at different wave lengths ####
+## Fluorescence emission at different wave lengths
 
 # Target emissions:
 
 # Blue laser: 585 nm | column: FL7.A
-# Blue laser: 610 nm | column: FL8.A
 # Blue laser: 690 nm | column: FL9.A
-# Red laser: 660 nm | column: FL11.A
-# Red laser: 710 nm | column: FL12.A
-
-# Pre-processing the fluorescence emission data
-
-# Assign "0" values when fluorescence is negative (below detection threshold of flow cytometer)
-nano_ind_df.c <- 
-  
-  fs_fsc_all_nano.df %>%
-  
-  mutate(across(c(9, # FL7.A
-                  11, # FL8.A
-                  13, # FL9.A
-                  17, # FL11.A 
-                  19), # FL12.A 
-                ~ if_else(. < 0, 0, .))) # negative values to "0" values
-
-# Check processing of the emission columns above
-summary(nano_ind_df.c)
-# OK
-
-# Log-transform emission values to normalise data previous to PCA
-nano_ind_df.c_log <- 
-  nano_ind_df.c %>%
-  mutate(across(c(9, 11, 13, 17, 19), ~ log10(. + 1))) # +1 to avoid log10(0)
-
-# Select target emission columns
-cor_nano_df <- nano_ind_df.c_log[, c(9, 11, 13, 17, 19)]
-
-# check column names before renaming:
-colnames(cor_nano_df)
-# OK
-
-# Assign names to columns following laser colour and wave length of emission
-colnames(cor_nano_df) <- c("B:585 nm", "B:610 nm", "B:690 nm", "R:660 nm", "R:712 nm")
-
-# Perform PCA of emission variables
-pca_pig.n <- prcomp(cor_nano_df, scale = TRUE)
-
-# Check PCA
-summary(pca_pig.n)
-# PCA1: 0.785 %  -> proxy of hetero- vs. phototrophic feeding
-# PCA2: 0.1788 % -> proxy of phycoerythrin (PE)-containing phototrophs vs. other phototrophs
-# 
-# PCA1+PCA2 = 0.9638 %
-
-# Visualise PCA
-(pca_pig_nano <- 
-    fviz_pca_var(pca_pig.n,
-                 col.var = "contrib", # Colour by contributions to the PC
-                 gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-                 repel = T     # Avoid text overlapping
-    )+
-    theme(text = element_text(size = 17))
-)
-# Looks OK
-# PCA1 -> more positive values indicate higher photopigment content, thus more phototrophic organisms
-# PCA2 -> more positive values indicate higher content of PE than chlorophyll, thus more PE-containing organisms
-
-# Obtain PCA metrics:
-res.ind_pig <- get_pca_ind(pca_pig.n)
-nano_ind_df.c$PCA1_pig <- res.ind_pig$coord[,1] # include PCA1 here (PCA1_pig) in dataset
-nano_ind_df.c$PCA2_pig <- res.ind_pig$coord[,2] # include PCA2 here (PCA2_pig) in dataset
-
-## 6.2. Visualise and double-check PCA results ####
-
-# PCA1:
-nano_ind_df.c %>%
-  
-  ggplot(., aes(x = PCA1_pig, y = log10(FL9.A + 1))) +
-  geom_hex(bins = 150) +
-  geom_vline(xintercept = 0, lwd = 1, lty = 2) +
-  facet_wrap(~lake) +
-  scale_fill_viridis_c(trans = "log10", option = "magma")
-
-# Remember PCA viz above:
-# PCA1 -> more positive values indicate higher photopigment content, thus more phototrophic organisms
-
-# Here, we see that:
-# PCA1 positively correlates with chlorophyll a content (mostly present in phototrophic organisms),
-# thus supporting this composite variable (PCA1) as a proxy of photorophic dominance.
-# In other words, the more positive values PCA1, more dominance of phototrophs in a sample.
-
-# PCA1 vs chlorophyll autofluorescence:
-ggplot(data = nano_ind_df.c, 
-       aes(x = ESD_um, y = PCA1_pig)) +
-  
-  stat_summary_2d(
-    aes(z = log10(FL9.A + 1), fill = after_stat(value)),
-    fun  = mean,
-    bins = 50) +
-  
-  geom_hline(yintercept = 0, lwd = 1, lty = 2) +
-  
-  facet_wrap(~lake) +
-  
-  theme_bw() +
-  
-  labs(y = "PCA axis 1 (autofluorescence covariation)", 
-       x = "cell diameter (µm)") +
-  
-  scale_x_log10(breaks = c(2, 4, 6, 10, 15, 20), labels = label_number()) +
-  annotation_logticks(sides = "b") +
-  
-  scale_fill_distiller(
-    palette = "YlGnBu",
-    name = expression(log[10]~"B690")) +
-  
-  theme(text = element_text(size = 18))
-
-# PCA2:
-nano_ind_df.c %>%
-  
-  # Let's check now within phototrophic organisms,
-  # i.e., PE-containing phototrophs vs other phototrophs:
-  
-  # First, we convert negative values in target emission channels into "0" values:
-  mutate(FL9.A.c = if_else(FL9.A >= 0, FL9.A, 0),
-         FL7.A.c = if_else(FL7.A >= 0, FL7.A, 0),
-         FL8.A.c = if_else(FL8.A >= 0, FL8.A, 0),
-         FL11.A.c = if_else(FL11.A >= 0, FL11.A, 0),
-         FL12.A.c = if_else(FL12.A >= 0, FL12.A, 0)) %>%
-  
-  # We here use the ratio of emission at B-585:R-712
-  # because PE-containing organisms should show greater proportion of 
-  # PE (ca. B-585) relative to chlorophyll (particularly excited by red light, R-712), and will thus
-  # exhibit greater B-585:R-712 values.
-  
-  mutate(FL7.c = FL7.A.c + 1, # +1 so the division does not become "0/x" or "x/0" (because log10(1) = 0)
-         FL8.c = FL8.A.c + 1,
-         FL9.c = FL9.A.c + 1,
-         FL11.c = FL11.A.c + 1,
-         FL12.c = FL12.A.c + 1) %>% 
-  
-  # include only values from photosynthetic cells (showing chlorophyll a fluorescence) :
-  dplyr::filter(FL9.A > 0) %>%
-  
-  ggplot(., aes(x = PCA2_pig, 
-                y = log10(FL7.c/FL12.c))) + # log of ratio so it is symmetric around 0; i.e. distance of log(3/1) from 0 is equal to that of log (1/3)
-  geom_hex(bins = 150) +
-  facet_wrap(~lake) +
-  geom_vline(xintercept = 0, lwd = 1, lty = 2) +
-  scale_fill_viridis_c(trans = "log10", option = "magma")
-
-# Remember PCA viz above:
-# PCA2 -> more positive values indicate higher content of PE than chlorophyll, thus more occurrence of PE-containing organisms
-
-# Here, we see that:
-# PCA2 positively correlates with higher content in PE:chlorophyll ratio (e.g., characteristic of cyanobacteria or cryptophytes),
-# thus supporting this composite variable (PCA2) as a proxy of PE-containing organisms dominance.
-# 
+# Red laser: 712 nm | column: FL12.A
 
 # Check this composite variable with cell size to interpret results
 check_ratios_n.df <- 
@@ -620,36 +467,30 @@ check_ratios_n.df <-
   # First, we convert negative values in target emission channels into "0" values:
   mutate(FL9.A.c = if_else(FL9.A >= 0, FL9.A, 0),
          FL7.A.c = if_else(FL7.A >= 0, FL7.A, 0),
-         FL8.A.c = if_else(FL8.A >= 0, FL8.A, 0),
-         FL11.A.c = if_else(FL11.A >= 0, FL11.A, 0),
          FL12.A.c = if_else(FL12.A >= 0, FL12.A, 0)) %>%
   
+  # We here use the ratio of emission at B-585:R-712
+  # because PE-containing organisms should show greater proportion of 
+  # PE (ca. B-585) relative to chlorophyll (particularly excited by red light, R-712), and will thus
+  # exhibit greater B-585:R-712 values.
+  
+  
   mutate(FL7.c = FL7.A.c + 1, # +1 so the division does not become "0/x" or "x/0" (because log10(1) = 0)
-         FL8.c = FL8.A.c + 1,
          FL9.c = FL9.A.c + 1,
-         FL11.c = FL11.A.c + 1,
          FL12.c = FL12.A.c + 1) %>% 
   
   mutate(ratio_B585.B690 = log10(FL7.c / FL9.c),
-         ratio_R660.B690 = log10(FL11.c / FL9.c),
-         ratio_B585.R660 = log10(FL7.c / FL11.c),
-         ratio_B585.R710 = log10(FL7.c / FL12.c)) %>%
+         ratio_B585.R712 = log10(FL7.c / FL12.c)) %>%
   
   dplyr::filter(FL9.A > 0) 
 
-# PCA2 vs autofluorescence ratio between PE and chlorophyll (B-585 nm : R-710 nm):
-#
-# This fluorescence ratio provides a proxy for differences in photopigment composition, 
-# allowing discrimination between phycoerythrin-containing organisms and other phototrophs
-#
-# Feel free to explore variation in other ratios.
-#
+# Visualise the relationship between the two functional variables and cell size:
 ggplot(data = check_ratios_n.df, 
        
-       aes(x = ESD_um, y = PCA2_pig)) +
+       aes(x = ESD_um, y = FL9.A.c)) +
   
   stat_summary_2d(
-    aes(z = ratio_B585.R710, fill = after_stat(value)),
+    aes(z = ratio_B585.R712, fill = after_stat(value)),
     fun  = mean,
     bins = 50) +
   
@@ -659,55 +500,23 @@ ggplot(data = check_ratios_n.df,
   
   theme_bw() +
   
-  labs(y = "PCA axis 2 (autofluorescence covariation)", 
+  labs(y = "B690", 
        x = "cell diameter (µm)") +
   
   scale_x_log10(breaks = c(2, 4, 6, 10, 15, 20), labels = label_number()) +
+  scale_y_log10() +
   annotation_logticks(sides = "b") +
   
   scale_fill_distiller(
     palette = "YlGnBu",
-    name = expression(log[10]~"B585:R710")) +
+    name = expression(log[10]~"B585:R712")) +
   
   theme(text = element_text(size = 18))
 
-## 6.3. Finally, calculate photopigment-related metrics ####
-#
-# 1. Photo- vs. heterotrophic dominance (PCA1 here):
-# 
-# Calculated as the mean value of PCA1 within a sample
-#
-# 2. PE-containing organisms vs. phototroph dominance (PCA2 here):
-#
-# Calculated as the mean value of PCA2 within a sample
-
-nano_PCA_pig.df <-
-  
-  nano_ind_df.c %>%
-  
-  # First, exclude values of non-photosynthetic organisms in PCA2 means
-  # as this should only compare between phototrophic organisms (PE-containing vs. other phototrophs)
-  mutate(PCA2_pig = as.numeric(if_else(FL9.A > 1,  PCA2_pig, NA))) %>%
-  
-  # metrics for each sample
-  group_by(lake, habitat, sample_FC_ID) %>% 
-  
-  summarise(mean_PCA1_pig = mean(PCA1_pig, na.rm = TRUE), # phototrophic dominance
-            mean_PCA2_pig = mean(PCA2_pig, na.rm = TRUE), # PE-containing organisms dominance (note the negative sign, see explanation above)
-            
-            # For further comparison, we may want to calculate also medians and number of cells within a sample:
-            median_PCA1_pig = median(PCA1_pig, na.rm = TRUE), 
-            median_PCA2_pig = median(PCA2_pig, na.rm = TRUE),
-            n_PCA1_pig = length(PCA1_pig),
-            n_PCA2_pig = length(PCA2_pig)) %>%
-  
-  data.frame()
-
-# Merge functional variables (from mean PCA1 and PCA2) with size-structure dataset:
+# Last adjustments to the dataset:
 MLE_data.n_all <- 
   MLE_data.n %>% 
-  inner_join(., nano_PCA_pig.df %>% dplyr::select(-lake, -habitat), by = "sample_FC_ID") %>%
-  
+
   # translate habitat names from Spanish to English:
   mutate(habitat = case_when(
     habitat == "pelagica" ~ "pelagic",

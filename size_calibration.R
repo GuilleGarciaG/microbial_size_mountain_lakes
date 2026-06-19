@@ -2,7 +2,7 @@
 # Script to reproduce conversion from light-scatter to cell size ###############
 # 
 # Authors: Guillermo García-Gómez (guillegar.gz@gmail.com)
-# Date: 17/02/2026
+# Date: 18/06/2026
 # Operating System: MackBook-Pro 14; macOS, Darwin Kernel Version 24.4.0
 # ------------------------------------------------------------------------------
 # Cite as:
@@ -52,11 +52,11 @@ for(pkg in miss_cran){
 # (see example below, but checking all packages is recommended)
 #
 # library(remotes) # needed to install a specific package version
-packageVersion("flowCore") # should be ‘2.18.0’; otherwise run the next line:
-# remotes::install_version("flowCore", version = "2.18.0", dependencies = TRUE)
+packageVersion("flowCore") # should be ‘2.22.1’; otherwise run the next line:
+# remotes::install_version("flowCore", version = "2.22.1", dependencies = TRUE)
 
-packageVersion("ggplot2") # should be ‘3.5.2’; otherwise run the next line:
-# remotes::install_version("ggplot2", version = "3.5.2", dependencies = TRUE)
+packageVersion("ggplot2") # should be ‘4.0.2’; otherwise run the next line:
+# remotes::install_version("ggplot2", version = "4.0.2", dependencies = TRUE)
 
 # NOTE that your R session may have older versions of package dependencies
 # that are not updated automatically even if you install the right version
