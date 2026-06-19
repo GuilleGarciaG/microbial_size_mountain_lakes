@@ -7,13 +7,13 @@ García-Gómez, G., Sánchez-Hernandez, J., Más Gutiérrez, J.A., & Arranz, I. 
 García-Gómez, G., Sánchez-Hernandez, J., Más Gutiérrez, J.A., & Arranz, I. (2026). Data, code, and statistical analyses of the manuscript: Community size structure of microbial plankton is associated with functional composition along a resource gradient in mountain lakes. OSF (DOI 10.17605/OSF.IO/2493Q): https://doi.org/10.17605/OSF.IO/2493Q
 
 ## R scripts
-* **picoplankton_data_processing.R** & **nanoplankton_data_processing.R** | These scripts contain all the necessary code to process pico- and nanoplankton data, respectively. This workflow obtains raw data from flow cytometry analysis (.fcs files), estimates cell size, and calculates community metrics, including N-M slopes, biovolume, as well as functional dominance variables. The code performs a Principal Component Analysis based on cell autofluorescence, which is used to estimate functional dominance variables. Note that functions to convert light-scatter values from flow cytometry data are demonstrated in the supplementary script **size_calibration.R** (see below).
+* **picoplankton_data_processing.R** & **nanoplankton_data_processing.R** | These scripts contain all the necessary code to process pico- and nanoplankton data, respectively. This workflow obtains raw data from flow cytometry analysis (.fcs files), estimates cell size, and calculates community metrics, including N-M slopes, biovolume, as well as functional dominance variables. Note that functions to convert light-scatter values from flow cytometry data are demonstrated in the supplementary script **size_calibration.R** (see below).
 
-* **env_data_processing.R** | This script contains code to process and check data of environmental variables, and to perform the Principal Component Analysis (PCA), which is used to quantify resource availability.
+* **env_data_processing.R** | This script contains code to process and check data of environmental variables.
 
 * **data_analysis.R** | This script contains code to reproduce statistical models, model diagnostics, and model selection in this study.
 
-* **figures.R** | This script contains code to reproduce figures in the paper, including a brief conceptual description for the hypotheses shown in figure 1.
+* **figures.R** | This script contains code to reproduce figures in the paper.
 
 > ### Supplementary scripts
 > **MLE_method.R** | This script contains a custom function to estimate N-M slopes through maximum-likelihood method. It was created by Ignasi Arranz using original functions and materials from package sizeSpectra. See: Edwards, A. M. sizeSpectra (Github, 2019); https://github.com/andrew-edwards/sizeSpectra
@@ -37,15 +37,13 @@ The dataset **environmental_data_lakes_2024.csv** contains measurements of envir
 * *ID_lake*: unique ID number for each lake
 * *ID_sample*: unique ID number for each sample
 * *lake*: lake name (in Spanish)
-* *habitat*: habitat where sample was collected (littoral: nearshore; pelagic: open water) 
+* *habitat*: field label to indicate whether sample collection was closer to shore (littoral) or closer to open-waters (pelagic), instead of actual habitat identity.
 * *replicate*: sample number within each habitat and lake
 * *temperature.C*: water temperature, in degrees Celsius
 * *dissolved_oxygen.perc*: oxygen saturation, in %
 * *total_N_ug.L*: total nitrogen concentration, in µg/l
 * *total_P_ug.L*: total phosphorus concentration, in µg/l
-* *TOC_mg.L*: total organic carbon, in mg/l
 * *nutrilab_label_TN.TP*: ID label from nutrient analyses 
-* *nutrilab_label_TOC*: ID label from TOC analyses 
 
 ### Lake information
 The dataset **lakes_location.csv** contains data on geographic location (latitude and longitude, in decimal degrees) and elevation (in m.a.s.l.) for each lake investigated here. The fine-resolution satellite data of terrain elevation, which was used to estimate light availability, is also available in the same folder ("appRasterSelectAPIService1764233714639-1101222210.tif").
@@ -54,7 +52,7 @@ The dataset **lakes_location.csv** contains data on geographic location (latitud
 The folder *calibration_beads* includes two subfolders, each containing three independent flow cytometry analyses of calibration beads of known diameter respectively for size-ranges of 0.2-2µm and 1-15µm (with their corresponding folders). Cytometer settings were adjusted to improve measuring precision within each size-range by using violet side-scatter and standard side-scatter light, respectively.
 
 # Notes
-All data processing was carried out in the R software version 4.2.2. The *Rcode* folder contains the scripts to reproduce the statistical analyses and figures presented in this manuscript. Processed data, model outputs, and figures are already stored in their corresponding folders. These already processed and stored data will be used when rerunning statistical analyses and remaking figures. Note that some of the code requires large memory capacity to process and visualise raw cytometry data (particularly **picoplankton_data_processing.R**); to avoid this issue, you may use data in folder *processed_data*. Please do check that package versions in your R session match with package versions used here (and package dependencies, see folder *Rsession*), so that results are fully reproducible. Note also that the figure 2 was slightly adjusted from the plot produced in R to remove a small-font, non-editable text label included by default ("Values <0.001 not shown"), because this text was not indispensable nor readable at the figure scale.
+All data processing was carried out in the R software version 4.2.2. The *Rcode* folder contains the scripts to reproduce the statistical analyses and figures presented in this manuscript. Processed data, model outputs, and figures are already stored in their corresponding folders. These already processed and stored data will be used when rerunning statistical analyses and remaking figures. Note that some of the code requires large memory capacity to process and visualise raw cytometry data (particularly **picoplankton_data_processing.R**); to avoid this issue, you may use data in folder *processed_data*. Please do check that package versions in your R session match with package versions used here (and package dependencies, see folder *Rsession*), so that results are fully reproducible.
 
 # R packages
 The R packages used for each R script are enlisted in the corresponding R session files (within folder *Rsession*).
