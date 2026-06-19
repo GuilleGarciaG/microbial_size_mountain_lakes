@@ -37,7 +37,7 @@ The dataset **environmental_data_lakes_2024.csv** contains measurements of envir
 * *ID_lake*: unique ID number for each lake
 * *ID_sample*: unique ID number for each sample
 * *lake*: lake name (in Spanish)
-* *habitat*: field label to indicate whether sample collection was closer to shore (littoral) or closer to open-waters (pelagic), instead of actual habitat identity.
+* *habitat*: field label to indicate whether sample collection was closer to shore (littoral) or closer to open-waters (pelagic), instead of actual habitat identity
 * *replicate*: sample number within each habitat and lake
 * *temperature.C*: water temperature, in degrees Celsius
 * *dissolved_oxygen.perc*: oxygen saturation, in %
