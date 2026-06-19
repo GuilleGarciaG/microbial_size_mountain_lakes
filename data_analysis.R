@@ -253,7 +253,7 @@ sw(avg_model_top.sl) %>% data.frame() # extract relative importance (sum of AICc
 
 # Create am object that package "car" can read
 # Rename coefficients names to avoid problematic characters for "car":
-coefs_renamed.sl <- coef(avg_model_top.sl)
+coefs_renamed.sl <- coef(avg_model_top.sl, full = TRUE)
 names(coefs_renamed.sl) <- make.names(names(coefs_renamed.sl))
 vcov_renamed.sl <- vcov(avg_model_top.sl)
 colnames(vcov_renamed.sl) <- make.names(rownames(vcov_renamed.sl))
@@ -371,7 +371,7 @@ sw(avg_model_top.bi) %>% data.frame() # extract relative importance (sum of AICc
 
 # Create am object that package "car" can read
 # Rename coefficients names to avoid problematic characters for "car":
-coefs_renamed.bi <- coef(avg_model_top.bi)
+coefs_renamed.bi <- coef(avg_model_top.bi, full = TRUE)
 names(coefs_renamed.bi) <- make.names(names(coefs_renamed.bi))
 vcov_renamed.bi <- vcov(avg_model_top.bi)
 colnames(vcov_renamed.bi) <- make.names(rownames(vcov_renamed.bi))
