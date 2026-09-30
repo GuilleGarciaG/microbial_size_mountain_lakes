@@ -1,7 +1,7 @@
 ################################################################################
 # Script to reproduce workflow for processing of environmental data ############
 # Author: Guillermo García-Gómez (guillegar.gz@gmail.com)
-# Date: 18/06/2026
+# Date: 30/09/2026
 # Operating System: MackBook-Pro 14; macOS, Darwin Kernel Version 24.4.0
 # ------------------------------------------------------------------------------
 # Cite as:
@@ -109,8 +109,6 @@ env_data.c %>%
 # OK!
 
 summary(env_data.c)
-# Note that 1 measurement is missing for total organic carbon
-
 
 # [2] Visualise variation across lakes ####
 

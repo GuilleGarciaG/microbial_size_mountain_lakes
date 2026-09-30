@@ -2,7 +2,7 @@
 # Script to reproduce conversion from light-scatter to cell size ###############
 # 
 # Authors: Guillermo García-Gómez (guillegar.gz@gmail.com)
-# Date: 18/06/2026
+# Date: 30/09/2026
 # Operating System: MackBook-Pro 14; macOS, Darwin Kernel Version 24.4.0
 # ------------------------------------------------------------------------------
 # Cite as:
@@ -72,6 +72,11 @@ library(scales)
 #
 ## [1] Size calibration for picoplankton data
 ## [2] Size calibration for nanoplankton data
+
+# Note "ESD" refers to equivalent spherical diameter,
+# a metric used as a proxy of cell size
+# assumed that cell shapes are spheres,
+# with the same volume and light-scattering properties.
 
 # [1] Size calibration for picoplankton data ####
 
@@ -191,6 +196,7 @@ lm_vssc_sec <- lm(log10(vssc_size_um) ~ log_SSC.1.A_peaks, data = peaks_vssc_df)
 # Check results:
 summary(lm_vssc_sec)
 # adj. R2 > 0.99
+confint(lm_vssc_sec)
 
 # We use the parameter estimates from this model in
 # our function to VSSC-A to size (ESD, µm) conversion
@@ -198,7 +204,7 @@ summary(lm_vssc_sec)
 vssc_ESD_conv <- function(vssc_value){
   
   # coefficients of linear model:
-  # log10 microsphere section (µm) ~ log10 SSC-1.A
+  # log10 bead diameter (µm) ~ log10 SSC-1.A
   #
   # intercept:
   #a <- lm_vssc_sec$coefficients[1]
@@ -220,8 +226,8 @@ vssc_ESD_conv <- function(vssc_value){
 vssc_ESD_conv(1e5)
 # VSSC-A = 1e5 -> ca. 0.35 µm
 
-# Summary plot of size (ESD, µm) conversion from VSSC-A:
-ggplot(peaks_vssc_df %>% mutate(run = as.factor(rep(seq(1,3, by = 1), each = 4))), 
+# Summary plot of diameter (µm) conversion from VSSC-A:
+(c.eq_pico <- ggplot(peaks_vssc_df %>% mutate(run = as.factor(rep(seq(1,3, by = 1), each = 4))), 
        aes(x = log_SSC.1.A_peaks, y = log10(vssc_size_um))) + 
   
   scale_x_continuous(breaks = c(4, 5, 6, 7), limits = c(4, 7)) +
@@ -229,13 +235,13 @@ ggplot(peaks_vssc_df %>% mutate(run = as.factor(rep(seq(1,3, by = 1), each = 4))
   geom_smooth(method = "lm", col = "tomato3") +
   scale_shape_manual(values = c(1,2,3)) +
   
-  annotate("text", label = expression(log[10]~"ESD"~"="~-2.40~"x"~0.39~log[10]~"VSSC-A"), x = 5, y = 0.25, size = 5) +
+  annotate("text", label = expression(log[10]~"ESD"~"="~-2.40~"x"~0.39~log[10]~"VSSC-A"), x = 5.2, y = 0.27, size = 5) +
   
   labs(title = "Conversion VSSC-A to ESD (µm)", 
-       x = expression(log[10]~"VSSC-A"),
-       y = expression(log[10]~"bead diameter (ESD, µm)"),
+       x = expression(log[10]~"VSSC"),
+       y = expression(log[10]~"bead diameter (µm)"),
        caption = "conversion from SSC-A values to cell standard diameter (ESD), assuming cells are spheres") +
-  theme(text = element_text(size = 15))
+  theme(text = element_text(size = 15)))
 
 # [2] Size calibration for nanoplankton data ####
 
@@ -371,14 +377,15 @@ lm_fsc_sec_1to15 <- lm(log10(fsc_size_um) ~ log_FSC.A_peaks, data = peaks_fsc_df
 # Check results:
 summary(lm_fsc_sec_1to15)
 # adj. R2 = 0.99
+confint(lm_fsc_sec_1to15)
 
 # We use the parameter estimates from this model in
-# our function to FSC-A to size (ESD, µm) conversion
+# our function to FSC-A to size (µm) conversion
 
 fsc_ESD_conv <- function(fsc_value){
   
   # coefficients of linear model:
-  # log10 microsphere section (µm) ~ log10 FSC-A
+  # log10 bead diameter (µm) ~ log10 FSC-A
   #
   # intercept:
   #a <- lm_fsc_sec_1to15$coefficients[1] # regression using 1-15µm beads
@@ -402,21 +409,28 @@ fsc_ESD_conv <- function(fsc_value){
 fsc_ESD_conv(1e5)
 # FSC-A = 1e5 -> ca. 2 µm
 
-# Summary plot of size (ESD, µm) conversion from FSC-A:
-ggplot(peaks_fsc_df %>% mutate(run = as.factor(rep(seq(1,3, by = 1), each = 6))), 
+# Summary plot of diameter (µm) conversion from FSC-A:
+(c.eq_nano <- 
+    
+    ggplot(peaks_fsc_df %>% mutate(run = as.factor(rep(seq(1,3, by = 1), each = 6))), 
        aes(x = log_FSC.A_peaks, y = log10(fsc_size_um))) + 
   
   geom_point(size = 4, stroke = 1.05, aes(shape = run)) +
   geom_smooth(method = "lm", col = "tomato3") +
   scale_shape_manual(values = c(1,2,3)) +
   
-  annotate("text", label = expression(log[10]~"ESD"~"="~-2.83~"x"~0.63~log[10]~"FSC-A"), x = 5.2, y = 1.1, size = 5) +
+  annotate("text", label = expression(log[10]~"ESD"~"="~-2.83~"x"~0.63~log[10]~"FSC-A"), x = 5.3, y = 1.2, size = 5) +
   
   labs(title = "Conversion FSC-A to ESD (µm)", 
-       x = expression(log[10]~"FSC-A"),
-       y = expression(log[10]~"bead diameter (ESD, µm)"),
-       caption = "conversion from FSC-A values to cell standard diameter (ESD), assuming cells are spheres") +
-  theme(text = element_text(size = 15))
+       x = expression(log[10]~"FSC"),
+       y = expression(log[10]~"bead diameter (µm)"),
+       caption = "conversion from FSC-A values to cell diameter, assuming cells are spheres") +
+  theme(text = element_text(size = 15)))
+
+plot_grid(c.eq_pico +  theme_bw() + 
+            theme(legend.position = c(0.8,0.2), text = element_text(size = 15)) + labs(title = "Picoplankton", caption = ""), 
+          c.eq_nano +  theme_bw() + 
+            theme(legend.position = c(0.8,0.2), text = element_text(size = 15)) + labs(title ="Nanoplankton", caption = ""))
 
 #-------------------------------------------------------------------------------
 # Save data of the R session and packages versions for reproducibility shake ####

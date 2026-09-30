@@ -2,7 +2,7 @@
 # Script to reproduce statistical analyses #####################################
 #
 # Author: Guillermo García-Gómez (guillegar.gz@gmail.com)
-# Date: 18/06/2026
+# Date: 30/09/2026
 # Operating System: MackBook-Pro 14; macOS, Darwin Kernel Version 24.4.0
 # ------------------------------------------------------------------------------
 # García-Gómez, G., Sánchez-Hernandez, J., Más Gutiérrez, J.A., & Arranz, I. (2026). 
@@ -152,13 +152,13 @@ MLE_all_results_df <-
   # transformation of variables
   mutate(
     
-    # Scale and center environmental predictors:
+    # Scale and centre environmental predictors:
     O2_scaled = scale(dissolved_oxygen.perc, 
                       center = TRUE, scale = TRUE)[,1],
-    logP_scaled = scale(log(total_P_ug.L), 
+    logP_scaled = scale(log10(total_P_ug.L), 
                         center = TRUE, scale = TRUE)[,1],
     
-    logN_scaled = scale(log(total_N_ug.L), 
+    logN_scaled = scale(log10(total_N_ug.L), 
                         center = TRUE, scale = TRUE)[,1],
     
     T_scaled = scale(temperature.C, 
@@ -171,6 +171,52 @@ MLE_all_results_df <-
 # Check number of samples (N = 120):
 nrow(MLE_all_results_df)
 # OK!
+
+# Check data summary:
+summary(MLE_all_results_df)
+
+(summary_table <- 
+    
+    MLE_all_results_df %>%
+    group_by(massif, lake) %>%
+    summarise(mean_temp = mean(temperature.C),
+              sd_temp = sd(temperature.C),
+              mean_OS = mean(dissolved_oxygen.perc),
+              sd_OS = sd(dissolved_oxygen.perc),
+              #g.mean_TN = 10^(mean(log10(total_N_ug.L))),
+              #g.sd_TN = 10^(sd(log10(total_N_ug.L))),
+              mean_TN = mean(total_N_ug.L),
+              sd_TN = sd(total_N_ug.L),
+              #g.mean_TP = 10^(mean(log10(total_P_ug.L))),
+              #g.sd_TP = 10^(sd(log10(total_P_ug.L))),
+              mean_TP = mean(total_P_ug.L),
+              sd_TP = sd(total_P_ug.L),
+              
+              mean_MLE.p = mean(MLE_slope[group == "picoplankton"]),
+              sd_MLE.p = sd(MLE_slope[group == "picoplankton"]),
+              
+              mean_MLE.n = mean(MLE_slope[group == "nanoplankton"]),
+              sd_MLE.n = sd(MLE_slope[group == "nanoplankton"]),
+              
+              #g.mean_biov.p = 10^(mean(log_biovol.um3.uL[group == "picoplankton"])),
+              #g.sd_biov.p = 10^(sd(log_biovol.um3.uL[group == "picoplankton"])),
+              mean_biov.p = mean(10^(log_biovol.um3.uL[group == "picoplankton"])),
+              sd_biov.p = sd(10^(log_biovol.um3.uL[group == "picoplankton"])),
+              
+              #g.mean_biov.n = 10^(mean(log_biovol.um3.uL[group == "nanoplankton"])),
+              #g.sd_biov.n = 10^(sd(log_biovol.um3.uL[group == "nanoplankton"])),
+              mean_biov.n = mean(10^(log_biovol.um3.uL[group == "nanoplankton"])),
+              sd_biov.n = sd(10^(log_biovol.um3.uL[group == "nanoplankton"])),
+              
+              mean_TN.TP = mean_TN / mean_TP,
+              
+              n = length(unique(sample_FC_ID))) %>%
+    
+    mutate(across(c(, 2:18), ~ round(., 3))) %>%
+    data.frame())
+
+write.csv(summary_table, file = "../results/summary_table.csv")
+
 
 ## 1.3. Check data visually ####
 
@@ -492,8 +538,8 @@ saveRDS(best_model.bi_REML, file = "../results/best_model.bi_REML.rds")
 # We use here the "main" environmental variales (as those with the highest relevance from AICc model selection)
 # and 2 functional variables (based on fluorescence at certain wave lenghts in the cytometer, see main text)
 #
-# B690 -> dominance of phototrophs over heterotrophs
-# B585:R712 -> dominance of PE-containing phototrophs over other phototrophs
+# B690 -> phototrophic signal (i.e. phototrophic contribution to microbial community)
+# B585:R712 -> contribution of PE-containing phototrophs relative to other phototrophs
 
 # Perform separate models for each microbial group:
 
@@ -504,7 +550,7 @@ pico.df <- MLE_all_results_df %>%
   # scale and center functional variables:
   mutate(B690 = scale(F_690.c, 
                       center = TRUE, scale = TRUE)[,1],
-         B585.712 = scale(log(F_585.c/F_712.c), 
+         B585.R712 = scale(F_585.c - F_712.c,
                           center = TRUE, scale = TRUE)[,1])
 # Nanoplankton dataset:
 nano.df <- MLE_all_results_df %>% 
@@ -513,8 +559,13 @@ nano.df <- MLE_all_results_df %>%
   # scale and center functional variables:
   mutate(B690 = scale(F_690.c, 
                       center = TRUE, scale = TRUE)[,1],
-         B585.712 = scale(log(F_585.c/F_712.c), 
+         B585.R712 = scale(F_585.c - F_712.c, 
                           center = TRUE, scale = TRUE)[,1])
+
+# Note that the ratio B585:R712 ("B585.R712")
+# is calculated here as the difference between the mean of log10 B585 ("F_585.c")
+# and the mean log10 R712 ("F_712.c"), which is mathematically identical to the 
+# log10 ratio of the geometric mean of B585 vs the geometric mean of R712 in a sample
 
 # Now we perform models including "main" environmental predictors of N-M slopes and biovolume
 # and functional variables
@@ -533,7 +584,7 @@ lmm_mod.part.pico.sl <- lmer(
     
     # functional variables
     B690 +
-    B585.712 +
+    B585.R712 +
     
     (1|lake),
   data = pico.df
@@ -549,7 +600,7 @@ lmm_mod.part.nano.sl <- lmer(
     
     # functional variables
     B690 +
-    B585.712 +
+    B585.R712 +
     
     (1|lake),
   data = nano.df
@@ -604,32 +655,32 @@ unique_env.var <- c("Unique to O2_scaled",
                     "Common to O2_scaled, and logP_scaled")
 
 unique_func.var <- c("Unique to B690",
-                     "Unique to B585.712",
-                     "Common to B690, and B585.712")
+                     "Unique to B585.R712",
+                     "Common to B690, and B585.R712")
 
 shared_env_func.var <- c("Common to O2_scaled, and B690",
                          "Common to logP_scaled, and B690",
-                         "Common to O2_scaled, and B585.712",
-                         "Common to logP_scaled, and B585.712",
+                         "Common to O2_scaled, and B585.R712",
+                         "Common to logP_scaled, and B585.R712",
                          "Common to O2_scaled, logP_scaled, and B690",
-                         "Common to O2_scaled, logP_scaled, and B585.712",
-                         "Common to logP_scaled, B690, and B585.712",
-                         "Common to O2_scaled, B690, and B585.712",
-                         "Common to O2_scaled, logP_scaled, B690, and B585.712")
+                         "Common to O2_scaled, logP_scaled, and B585.R712",
+                         "Common to logP_scaled, B690, and B585.R712",
+                         "Common to O2_scaled, B690, and B585.R712",
+                         "Common to O2_scaled, logP_scaled, B690, and B585.R712")
 
 shared_env_B690 <- c("Common to O2_scaled, and B690", 
                      "Common to logP_scaled, and B690",
                      "Common to O2_scaled, logP_scaled, and B690",
-                     "Common to O2_scaled, B690, and B585.712",
-                     "Common to O2_scaled, logP_scaled, B690, and B585.712",
-                     "Common to logP_scaled, B690, and B585.712")
+                     "Common to O2_scaled, B690, and B585.R712",
+                     "Common to O2_scaled, logP_scaled, B690, and B585.R712",
+                     "Common to logP_scaled, B690, and B585.R712")
 
-shared_env_B585.712 <- c("Common to O2_scaled, and B585.712",
-                         "Common to logP_scaled, and B585.712",
-                         "Common to O2_scaled, logP_scaled, and B585.712",
-                         "Common to O2_scaled, B690, and B585.712",
-                         "Common to O2_scaled, logP_scaled, B690, and B585.712",
-                         "Common to logP_scaled, B690, and B585.712")
+shared_env_B585.R712 <- c("Common to O2_scaled, and B585.R712",
+                         "Common to logP_scaled, and B585.R712",
+                         "Common to O2_scaled, logP_scaled, and B585.R712",
+                         "Common to O2_scaled, B690, and B585.R712",
+                         "Common to O2_scaled, logP_scaled, B690, and B585.R712",
+                         "Common to logP_scaled, B690, and B585.R712")
 
 # 2.2. Create tables with all fractions by term:
 shared_var.pico.sl <- 
@@ -667,16 +718,22 @@ shared_var.nano.sl <-
 shared_df.pico.sl$cum.fractions[shared_df.pico.sl$type == "env+func"] / #  shared fraction env+func
   (sum(shared_df.pico.sl$cum.fractions[shared_df.pico.sl$type == "env-only"],
         shared_df.pico.sl$cum.fractions[shared_df.pico.sl$type == "env+func"])) # (total fraction of env. variables)
-# 37%
+# 14%
 
-# env. variance shared with functional variable B585:R712 (dominance of PE-containing organisms)
+# env. variance shared with functional variable B690 (phototrophic contribution)
 shared_var.pico.sl %>%
-  filter(component %in% shared_env_B585.712) %>%
+  dplyr::filter(component %in% shared_env_B690) %>%
+  summarise(shared = sum(fractions))
+# As this is the functional variable with the largest explained variance
+
+# env. variance shared with functional variable B585:R712 (relative contribution of PE-containing organisms)
+shared_var.pico.sl %>%
+  dplyr::filter(component %in% shared_env_B585.R712) %>%
   summarise(shared = sum(fractions))
 
 # proportion of env. variance overlapping B585:R712
-0.0205 / (0.0205 + 0.0183) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
-# 53%
+0.0114 / (0.0114 + 0.0249) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
+# 31%
 
 # for nanoplankton:
 (shared_df.nano.sl <- 
@@ -695,16 +752,16 @@ shared_var.pico.sl %>%
 shared_df.nano.sl$cum.fractions[shared_df.nano.sl$type == "env+func"] / #  shared fraction env+func
   (sum(shared_df.nano.sl$cum.fractions[shared_df.nano.sl$type == "env-only"],
        shared_df.nano.sl$cum.fractions[shared_df.nano.sl$type == "env+func"])) # (total fraction of env. variables)
-# 95%
+# 85%
 
-# env. variance shared with functional variable B585:R712 (dominance of PE-containing organisms)
+# env. variance shared with functional variable B585:R712 (relative contribution of PE-containing organisms)
 shared_var.nano.sl %>%
-  filter(component %in% shared_env_B585.712) %>%
+  dplyr::filter(component %in% shared_env_B585.R712) %>%
   summarise(shared = sum(fractions))
 
 # proportion of env. variance overlapping B585:R712
-0.248 / (0.248 + 0.0135) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
-# 95%
+0.2504 / (0.2504 + 0.0394) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
+# 86%
 
 ### 2.2.2. Biovolume ####
 
@@ -720,7 +777,7 @@ lmm_mod.part.pico.bi <- lmer(
     
     # functional variables
     B690 +
-    B585.712 +
+    B585.R712 +
     
     (1|lake),
   data = pico.df
@@ -736,7 +793,7 @@ lmm_mod.part.nano.bi <- lmer(
     
     # functional variables
     B690 +
-    B585.712 +
+    B585.R712 +
     
     (1|lake),
   data = nano.df
@@ -823,16 +880,16 @@ shared_var.nano.bi <-
 shared_df.pico.bi$cum.fractions[shared_df.pico.bi$type == "env+func"] / #  shared fraction env+func
   (sum(shared_df.pico.bi$cum.fractions[shared_df.pico.bi$type == "env-only"],
        shared_df.pico.bi$cum.fractions[shared_df.pico.bi$type == "env+func"])) # (total fraction of env. variables)
-# 31%
+# 30%
 
-# env. variance shared with functional variable B585:R712 (dominance of PE-containing organisms)
+# env. variance shared with functional variable B585:R712 (relative contribution of PE-containing organisms)
 shared_var.pico.bi %>%
-  filter(component %in% shared_env_B585.712) %>%
+  dplyr::filter(component %in% shared_env_B585.R712) %>%
   summarise(shared = sum(fractions))
 
 # proportion of env. variance overlapping B585:R712
-0.0045 / (0.0045 + 0.0772) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
-# ca. 6%
+0.0035 / (0.0035 + 0.0772) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
+# ca. 4%
 
 # for nanoplankton:
 (shared_df.nano.bi <- 
@@ -851,16 +908,16 @@ shared_var.pico.bi %>%
 shared_df.nano.bi$cum.fractions[shared_df.nano.bi$type == "env+func"] / #  shared fraction env+func
   (sum(shared_df.nano.bi$cum.fractions[shared_df.nano.bi$type == "env-only"],
        shared_df.nano.bi$cum.fractions[shared_df.nano.bi$type == "env+func"])) # (total fraction of env. variables)
-# 63%
+# 73%
 
-# env. variance shared with functional variable B585:R712 (dominance of PE-containing organisms)
+# env. variance shared with functional variable B585:R712 (relative contribution of PE-containing organisms)
 shared_var.nano.bi %>%
-  filter(component %in% shared_env_B585.712) %>%
+  dplyr::filter(component %in% shared_env_B585.R712) %>%
   summarise(shared = sum(fractions))
 
 # proportion of env. variance overlapping B585:R712
-0.0577 / (0.0577 + 0.0726) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
-# 95%
+0.1214 / (0.1214 + 0.0529) #  shared fraction env+B585:R712 / (fraction env. variables only + shared fraction env+B585:R712)
+# 70%
 
 ### 2.2.3 Save results of variance partitioning for visualisation ####
 
@@ -872,7 +929,7 @@ hp_lmm.p_sl.df <-
     variable = names(hp_lmm.p.sl$hierarchical.partitioning[, "Individual"]),
     individual_effect = hp_lmm.p.sl$hierarchical.partitioning[, "Individual"],
     row.names = NULL) %>%
-  mutate(var.type = if_else(variable %in% c("B585.712", "B690"), "functional", "environmental"))
+  mutate(var.type = if_else(variable %in% c("B585.R712", "B690"), "functional", "environmental"))
 
 # nanoplankton:
 hp_lmm.n_sl.df <- 
@@ -880,7 +937,7 @@ hp_lmm.n_sl.df <-
     variable = names(hp_lmm.n.sl$hierarchical.partitioning[, "Individual"]),
     individual_effect = hp_lmm.n.sl$hierarchical.partitioning[, "Individual"],
     row.names = NULL) %>%
-  mutate(var.type = if_else(variable %in% c("B585.712", "B690"), "functional", "environmental"))
+  mutate(var.type = if_else(variable %in% c("B585.R712", "B690"), "functional", "environmental"))
 
 # overview of variance fractions:
 shared_df.pico.sl
@@ -901,7 +958,7 @@ hp_lmm.p_bi.df <-
     variable = names(hp_lmm.p.bi$hierarchical.partitioning[, "Individual"]),
     individual_effect = hp_lmm.p.bi$hierarchical.partitioning[, "Individual"],
     row.names = NULL) %>%
-  mutate(var.type = if_else(variable %in% c("B585.712", "B690"), "functional", "environmental"))
+  mutate(var.type = if_else(variable %in% c("B585.R712", "B690"), "functional", "environmental"))
 
 # nanoplankton:
 hp_lmm.n_bi.df <- 
@@ -909,7 +966,7 @@ hp_lmm.n_bi.df <-
     variable = names(hp_lmm.n.bi$hierarchical.partitioning[, "Individual"]),
     individual_effect = hp_lmm.n.bi$hierarchical.partitioning[, "Individual"],
     row.names = NULL) %>%
-  mutate(var.type = if_else(variable %in% c("B585.712", "B690"), "functional", "environmental"))
+  mutate(var.type = if_else(variable %in% c("B585.R712", "B690"), "functional", "environmental"))
 
 # overview of variance fractions:
 shared_df.pico.bi

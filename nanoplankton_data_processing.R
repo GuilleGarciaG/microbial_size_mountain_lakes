@@ -7,7 +7,7 @@
 # ideal to analyse nanoplankton communities
 #
 # Author: Guillermo García-Gómez (guillegar.gz@gmail.com)
-# Date: 18/06/2026
+# Date: 30/09/2026
 # Operating System: MackBook-Pro 14; macOS, Darwin Kernel Version 24.4.0
 # ------------------------------------------------------------------------------
 # Cite as:
@@ -463,7 +463,7 @@ summary(MLE_data.n$MLE_slope)
 # Check this composite variable with cell size to interpret results
 check_ratios_n.df <- 
   
-  nano_ind_df.c %>%
+  fs_fsc_all_nano.df %>%
   # First, we convert negative values in target emission channels into "0" values:
   mutate(FL9.A.c = if_else(FL9.A >= 0, FL9.A, 0),
          FL7.A.c = if_else(FL7.A >= 0, FL7.A, 0),
@@ -480,7 +480,9 @@ check_ratios_n.df <-
          FL12.c = FL12.A.c + 1) %>% 
   
   mutate(ratio_B585.B690 = log10(FL7.c / FL9.c),
-         ratio_B585.R712 = log10(FL7.c / FL12.c)) %>%
+         ratio_B585.R712 = log10(FL7.c / FL12.c),
+         # this is equivalent to the ratios above (as calculated in analyses):
+         ratio_B585.R712.c = log10(FL7.c) - log10(FL12.c)) %>%
   
   dplyr::filter(FL9.A > 0) 
 
@@ -490,7 +492,7 @@ ggplot(data = check_ratios_n.df,
        aes(x = ESD_um, y = FL9.A.c)) +
   
   stat_summary_2d(
-    aes(z = ratio_B585.R712, fill = after_stat(value)),
+    aes(z = ratio_B585.R712.c, fill = after_stat(value)),
     fun  = mean,
     bins = 50) +
   
@@ -509,7 +511,7 @@ ggplot(data = check_ratios_n.df,
   
   scale_fill_distiller(
     palette = "YlGnBu",
-    name = expression(log[10]~"B585:R712")) +
+    name = "B585:R712") +
   
   theme(text = element_text(size = 18))
 
